@@ -1,0 +1,28 @@
+!SESSION 2015-10-25 12:43:13.965 -----------------------------------------------
+eclipse.buildId=4.4.0.I20140606-1215
+java.version=1.7.0_79
+java.vendor=Oracle Corporation
+BootLoader constants: OS=linux, ARCH=x86_64, WS=gtk, NL=en_IN
+Framework arguments:  -product org.eclipse.epp.package.jee.product
+Command-line arguments:  -os linux -ws gtk -arch x86_64 -product org.eclipse.epp.package.jee.product
+
+!ENTRY org.eclipse.core.net 1 0 2015-10-25 12:43:40.741
+!MESSAGE System property http.proxyHost is not set but should be proxy62.iitd.ernet.in.
+
+!ENTRY org.eclipse.core.net 1 0 2015-10-25 12:43:40.744
+!MESSAGE System property http.proxyPort is not set but should be 3128.
+
+!ENTRY org.eclipse.core.net 1 0 2015-10-25 12:43:40.744
+!MESSAGE System property https.proxyHost is not set but should be proxy62.iitd.ernet.in.
+
+!ENTRY org.eclipse.core.net 1 0 2015-10-25 12:43:40.744
+!MESSAGE System property https.proxyPort is not set but should be 3128.
+
+!ENTRY org.eclipse.core.net 1 0 2015-10-25 12:43:40.746
+!MESSAGE System property https.proxyHost is not set but should be proxy62.iitd.ernet.in.
+
+!ENTRY org.eclipse.core.net 1 0 2015-10-25 12:43:40.746
+!MESSAGE System property https.proxyPort is not set but should be 3128.
+
+!ENTRY org.eclipse.ui.browser 2 0 2015-10-25 12:43:46.623
+!MESSAGE Internal browser is not available: No more handles [Unknown Mozilla path (MOZILLA_FIVE_HOME not set)]

@@ -10,6 +10,8 @@
 #include <GL/glut.h>
 #include "../include/Player.h"
 
+using namespace std;
+
 #define SCREEN_WIDTH 1024
 #define SCREEN_HEIGHT 768
 #define TIMER 50
@@ -17,29 +19,123 @@
 Soccer *soccer;
 Player *player;
 
+bool keysPressed[4];
+
+void handleSpecialUpInput(int key,int x,int y)
+{
+	switch(key)
+	{
+		case GLUT_KEY_RIGHT:
+			keysPressed[0] = false;
+			break;
+
+		case GLUT_KEY_LEFT:
+			keysPressed[1] = false;
+			break;
+
+		case GLUT_KEY_UP:
+			keysPressed[2] = false;
+			break;
+
+		case GLUT_KEY_DOWN:
+			keysPressed[3] = false;
+			break;
+	}
+}
+
 void handleSpecialInput(int key, int x, int y)
 {
     switch(key)
     {
         case GLUT_KEY_RIGHT:
-            player->setAngle(0);
-            player->moveForward();
+        	keysPressed[0] = true;
+        	if(keysPressed[2])
+        	{
+        		player->setAngle(45);
+        		player->moveForward();
+        	}
+        	else if(keysPressed[3])
+        	{
+        		player->setAngle(315);
+        		player->moveForward();
+        	}
+        	else
+        	{
+        		player->setAngle(0);
+        		player->moveForward();
+        	}
             break;
 
         case GLUT_KEY_LEFT:
-            player->setAngle(180);
-            player->moveForward();
+        	keysPressed[1] = true;
+        	if(keysPressed[2])
+			{
+				player->setAngle(135);
+				player->moveForward();
+			}
+			else if(keysPressed[3])
+			{
+				player->setAngle(225);
+				player->moveForward();
+			}
+			else
+			{
+				player->setAngle(180);
+				player->moveForward();
+			}
             break;
 
         case GLUT_KEY_UP:
-            player->setAngle(90);
-            player->moveForward();
+        	keysPressed[2] = true;
+        	if(keysPressed[0])
+			{
+				player->setAngle(45);
+				player->moveForward();
+			}
+			else if(keysPressed[1])
+			{
+				player->setAngle(135);
+				player->moveForward();
+			}
+			else
+			{
+				player->setAngle(90);
+				player->moveForward();
+			}
             break;
 
         case GLUT_KEY_DOWN:
-            player->setAngle(270);
-            player->moveForward();
+        	keysPressed[3] = true;
+        	if(keysPressed[0])
+			{
+				player->setAngle(315);
+				player->moveForward();
+			}
+			else if(keysPressed[1])
+			{
+				player->setAngle(225);
+				player->moveForward();
+			}
+			else
+			{
+				player->setAngle(270);
+				player->moveForward();
+			}
             break;
+    }
+
+    if(keysPressed[0])
+    {
+    	if(keysPressed[2])
+    	{
+    		player->setAngle(45);
+    		player->moveForward();
+    	}
+    	else
+    	{
+    		player->setAngle(0);
+    		player->moveForward();
+    	}
     }
 }
 
@@ -102,9 +198,12 @@ int main(int argc, char *argv[])
 	glutCreateWindow("OpenGL");
 	initRendering();
 
+	for(int i=0;i<4;i++) keysPressed[i] = false;
+
 	glutDisplayFunc(drawScene);
 	glutKeyboardFunc(handleKeyPress);
 	glutSpecialFunc(handleSpecialInput);
+	glutSpecialUpFunc(handleSpecialUpInput);
 	glutReshapeFunc(handleResize);
     glutTimerFunc(TIMER, update, 0);
 
