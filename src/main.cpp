@@ -124,19 +124,7 @@ void handleSpecialInput(int key, int x, int y)
             break;
     }
 
-    if(keysPressed[0])
-    {
-    	if(keysPressed[2])
-    	{
-    		player->setAngle(45);
-    		player->moveForward();
-    	}
-    	else
-    	{
-    		player->setAngle(0);
-    		player->moveForward();
-    	}
-    }
+
 }
 
 void handleKeyPress(unsigned char key, int x, int y)
@@ -152,13 +140,15 @@ void handleKeyPress(unsigned char key, int x, int y)
 void initRendering()
 {
 	glEnable(GL_TEXTURE_2D);
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_COLOR_MATERIAL);
-	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-	glEnable(GL_LIGHT1);
-	glEnable(GL_NORMALIZE);
-	//glClearColor(0.7f, 0.9f, 1.0f, 1.0f);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_COLOR_MATERIAL);
+	//glEnable(GL_LIGHTING);
+	//glEnable(GL_LIGHT0);
+	//glEnable(GL_LIGHT1);
+	//glEnable(GL_NORMALIZE);
+	glClearColor(0.7f, 1.0f, 0.7f, 1.0f);
 }
 
 void handleResize(int w, int h)
@@ -175,7 +165,7 @@ void drawScene()
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    //glOrtho(0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 0.0f, 0.0f);
+    glOrtho(0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 0.0f, 0.0f);
     glTranslatef(-50.0f, -50.0f, -150.0f);
 
     player->draw();
@@ -192,7 +182,7 @@ void update(int value)
 int main(int argc, char *argv[])
 {
     glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
 	glutInitWindowSize(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	glutCreateWindow("OpenGL");
@@ -208,7 +198,7 @@ int main(int argc, char *argv[])
     glutTimerFunc(TIMER, update, 0);
 
     soccer = new Soccer();
-    player = new Player(2, 10, 10, 0, soccer);
+    player = new Player(0, 2, 10, 10, 0, soccer);
 
 	glutMainLoop();
 

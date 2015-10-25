@@ -12,6 +12,8 @@
 
 class Player
 {
+	int texture;
+	int totalPostures;
 	int posture;
 	float mobility;
 	float pos_x;
@@ -22,7 +24,7 @@ class Player
 	void applyRotation(float angle, float x, float y);
 	void restoreRotation();
 public:
-	Player(float mobility, float pos_x, float pos_y, float angle, Soccer *soccer);
+	Player(int texture, float mobility, float pos_x, float pos_y, float angle, Soccer *soccer);
 	virtual ~Player();
 
 	void moveForward();

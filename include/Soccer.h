@@ -15,15 +15,18 @@
 #include <GL/glut.h>
 #include <string>
 
+#define PLAYER_TEX 2
+
 class Soccer
 {
-	GLuint playerTex[15];
+	GLuint *playerTex[PLAYER_TEX];
 
 public:
 	Soccer();
 	virtual ~Soccer();
 
-	GLuint *getPlayerTex();
+	GLuint *getPlayerTex(int player);
+	int getTotalPostures(int player);
 };
 
 #endif /* INCLUDE_SOCCER_H_ */

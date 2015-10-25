@@ -38,8 +38,10 @@ void Player::restoreRotation()
     glPopMatrix();
 }
 
-Player::Player(float mobility, float pos_x, float pos_y, float angle, Soccer *soccer)
+Player::Player(int texture, float mobility, float pos_x, float pos_y, float angle, Soccer *soccer)
 {
+	this->texture = texture;
+	this->totalPostures = soccer->getTotalPostures(texture);
 	this->posture = 0;
 	this->mobility = mobility;
 	this->pos_x = pos_x;
@@ -58,7 +60,7 @@ void Player::moveForward()
 	if(++stateCounter != 2)
 		return;
 	stateCounter = 0;
-	posture = (posture + 1) % 14;
+	posture = (posture + 2) % totalPostures;
 	pos_x += mobility * cos(angle * 3.1415 / 180);
 	pos_y += mobility * sin(angle * 3.1415 / 180);
 }
@@ -70,12 +72,12 @@ void Player::setAngle(float angle)
 
 void Player::draw()
 {
-	glBindTexture(GL_TEXTURE_2D, soccer->getPlayerTex()[posture]);
+	glBindTexture(GL_TEXTURE_2D, soccer->getPlayerTex(texture)[posture]);
 
 	int width = 88 / 5;
 	int height = 98 / 5;
 
-	applyRotation(angle + 90, pos_x, pos_y);
+	applyRotation(angle - 90, pos_x, pos_y);
 	glBegin(GL_QUADS);
 		glTexCoord2f(0, 0); glVertex3f(pos_x - width/2, pos_y - height/2, 0);
 		glTexCoord2f(1, 0); glVertex3f(pos_x + width/2, pos_y - height/2, 0);
