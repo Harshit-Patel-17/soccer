@@ -20,13 +20,16 @@
 class Soccer
 {
 	GLuint *playerTex[PLAYER_TEX];
+	GLuint *ballTex;
 
 public:
 	Soccer();
 	virtual ~Soccer();
 
 	GLuint *getPlayerTex(int player);
-	int getTotalPostures(int player);
+	int getTotalPlayerPostures(int player);
+	GLuint *getBallTex();
+	int getTotalBallPositions();
 };
 
 #endif /* INCLUDE_SOCCER_H_ */

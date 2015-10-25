@@ -9,15 +9,17 @@
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include "../include/Player.h"
+#include "../include/Ball.h"
 
 using namespace std;
 
-#define SCREEN_WIDTH 1024
-#define SCREEN_HEIGHT 768
+#define SCREEN_WIDTH 1024*2
+#define SCREEN_HEIGHT 768*2
 #define TIMER 50
 
 Soccer *soccer;
 Player *player;
+Ball *ball;
 
 bool keysPressed[4];
 
@@ -134,6 +136,10 @@ void handleKeyPress(unsigned char key, int x, int y)
         case 27:
             exit(0);
             break;
+
+        case 32:
+        	player->shoot();
+        	break;
 	}
 }
 
@@ -169,6 +175,8 @@ void drawScene()
     glTranslatef(-50.0f, -50.0f, -150.0f);
 
     player->draw();
+    ball->updatePosition();
+    ball->draw();
 
     glutSwapBuffers();
 }
@@ -198,7 +206,9 @@ int main(int argc, char *argv[])
     glutTimerFunc(TIMER, update, 0);
 
     soccer = new Soccer();
-    player = new Player(0, 2, 10, 10, 0, soccer);
+    ball = new Ball(20, 20, 0, soccer);
+    player = new Player(0, 2, 10, 10, 0, soccer, ball);
+    //ball->hit(4, -0.3, 0);
 
 	glutMainLoop();
 

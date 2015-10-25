@@ -8,6 +8,8 @@
 #include "../include/Player.h"
 #include <math.h>
 
+#define HIT_THRESHOLD 5
+
 void Player::applyRotation(float angle, float x, float y)
 {
     angle = angle * 3.1415 / 180;
@@ -38,23 +40,26 @@ void Player::restoreRotation()
     glPopMatrix();
 }
 
-Player::Player(int texture, float mobility, float pos_x, float pos_y, float angle, Soccer *soccer)
+Player::Player(int texture, float mobility, float pos_x, float pos_y, float angle, Soccer *soccer, Ball *ball)
 {
 	this->texture = texture;
-	this->totalPostures = soccer->getTotalPostures(texture);
+	this->totalPostures = soccer->getTotalPlayerPostures(texture);
 	this->posture = 0;
 	this->mobility = mobility;
 	this->pos_x = pos_x;
 	this->pos_y = pos_y;
 	this->angle = angle;
+	this->ball = ball;
 	this->soccer = soccer;
+	if(ball != NULL)
+		ball->setPosition(pos_x, pos_y);
 }
 
 Player::~Player() {
 	// TODO Auto-generated destructor stub
 }
 
-void Player::moveForward()
+/*void Player::moveForward()
 {
 	static int stateCounter = 0;
 	if(++stateCounter != 2)
@@ -63,6 +68,51 @@ void Player::moveForward()
 	posture = (posture + 2) % totalPostures;
 	pos_x += mobility * cos(angle * 3.1415 / 180);
 	pos_y += mobility * sin(angle * 3.1415 / 180);
+
+	if(ball != NULL)
+	{
+		float dx = ball->getPosX() - pos_x;
+		float dy = ball->getPosY() - pos_y;
+		float dist = sqrt(dx*dx + dy*dy);
+		if(dist <= HIT_THRESHOLD)
+			ball->hit(3, -0.3, angle);
+	}
+}*/
+
+void Player::moveForward()
+{
+	static int stateCounter = 0;
+	if(++stateCounter != 2)
+		return;
+	stateCounter = 0;
+	posture = (posture + 2) % totalPostures;
+
+	if(ball != NULL)
+	{
+		float dx = ball->getPosX() - pos_x;
+		float dy = ball->getPosY() - pos_y;
+		float dist = sqrt(dx*dx + dy*dy);
+		if(dist <= HIT_THRESHOLD)
+			ball->hit(3, -0.3, angle);
+		else
+		{
+			pos_x += mobility * dx / dist;
+			pos_y += mobility * dy / dist;
+		}
+	}
+	else
+	{
+		pos_x += mobility * cos(angle * 3.1415 / 180);
+		pos_y += mobility * sin(angle * 3.1415 / 180);
+	}
+}
+
+void Player::shoot()
+{
+	if(ball == NULL)
+		return;
+	ball->hit(6, -0.3, angle);
+	ball = NULL;
 }
 
 void Player::setAngle(float angle)
