@@ -21,6 +21,7 @@ class Soccer
 {
 	GLuint *playerTex[PLAYER_TEX];
 	GLuint *ballTex;
+	GLuint groundTex;
 
 public:
 	Soccer();
@@ -30,6 +31,7 @@ public:
 	int getTotalPlayerPostures(int player);
 	GLuint *getBallTex();
 	int getTotalBallPositions();
+	GLuint getGroundTex();
 };
 
 #endif /* INCLUDE_SOCCER_H_ */

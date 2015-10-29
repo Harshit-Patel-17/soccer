@@ -10,6 +10,14 @@
 
 #define HIT_THRESHOLD 5
 
+float Player::max(float x, float y)
+{
+	if(x >= y)
+		return x;
+	else
+		return y;
+}
+
 void Player::applyRotation(float angle, float x, float y)
 {
     angle = angle * 3.1415 / 180;
@@ -40,7 +48,7 @@ void Player::restoreRotation()
     glPopMatrix();
 }
 
-Player::Player(int texture, float mobility, float pos_x, float pos_y, float angle, Soccer *soccer, Ball *ball)
+Player::Player(int texture, float mobility, float pos_x, float pos_y, float angle, Soccer *soccer, Ground *ground, Ball *ball)
 {
 	this->texture = texture;
 	this->totalPostures = soccer->getTotalPlayerPostures(texture);
@@ -51,6 +59,7 @@ Player::Player(int texture, float mobility, float pos_x, float pos_y, float angl
 	this->angle = angle;
 	this->ball = ball;
 	this->soccer = soccer;
+	this->ground = ground;
 	if(ball != NULL)
 		ball->setPosition(pos_x, pos_y);
 }
@@ -81,6 +90,11 @@ Player::~Player() {
 
 void Player::moveForward()
 {
+	float minX = ground->getMinX();
+	float maxX = ground->getMaxX();
+	float minY = ground->getMinY();
+	float maxY = ground->getMaxY();
+
 	static int stateCounter = 0;
 	if(++stateCounter != 2)
 		return;
@@ -96,28 +110,50 @@ void Player::moveForward()
 			ball->hit(3, -0.3, angle);
 		else
 		{
-			pos_x += mobility * dx / dist;
-			pos_y += mobility * dy / dist;
+			pos_x = pos_x + mobility * dx / dist;
+			pos_y = pos_y + mobility * dy / dist;
 		}
 	}
 	else
 	{
-		pos_x += mobility * cos(angle * 3.1415 / 180);
-		pos_y += mobility * sin(angle * 3.1415 / 180);
+		pos_x = pos_x + mobility * cos(angle * 3.1415 / 180);
+		pos_y = pos_y + mobility * sin(angle * 3.1415 / 180);
 	}
+
+	if(pos_x > maxX)
+		pos_x = maxX;
+
+	if(pos_x < minX)
+		pos_x = minX;
+
+	if(pos_y > maxY)
+		pos_y = maxY;
+
+	if(pos_y < minY)
+		pos_y = minY;
 }
 
 void Player::shoot()
 {
 	if(ball == NULL)
 		return;
-	ball->hit(6, -0.3, angle);
+	ball->hit(8, -0.3, angle);
 	ball = NULL;
 }
 
 void Player::setAngle(float angle)
 {
 	this->angle = angle;
+}
+
+float Player::getPosX()
+{
+	return pos_x;
+}
+
+float Player::getPosY()
+{
+	return pos_y;
 }
 
 void Player::draw()

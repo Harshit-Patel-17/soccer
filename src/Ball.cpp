@@ -38,10 +38,11 @@ void Ball::restoreRotation()
     glPopMatrix();
 }
 
-Ball::Ball(float pos_x, float pos_y, float angle, Soccer *soccer)
+Ball::Ball(float pos_x, float pos_y, float angle, Soccer *soccer, Ground *ground)
 {
 	this->position = 0;
 	this->totalPositions = soccer->getTotalBallPositions();
+	this->ground = ground;
 	this->soccer = soccer;
 	this->pos_x = pos_x;
 	this->pos_y = pos_y;
@@ -57,6 +58,7 @@ Ball::~Ball() {
 
 void Ball::draw()
 {
+	updatePosition();
 	glBindTexture(GL_TEXTURE_2D, soccer->getBallTex()[position]);
 
 	int width = 62 / 8;
@@ -74,6 +76,11 @@ void Ball::draw()
 
 void Ball::updatePosition()
 {
+	float minX = ground->getMinX();
+	float maxX = ground->getMaxX();
+	float minY = ground->getMinY();
+	float maxY = ground->getMaxY();
+
 	float dx_unit = cos(angle * 3.1415 / 180);
 	float dy_unit = sin(angle * 3.1415 / 180);
 
@@ -85,6 +92,30 @@ void Ball::updatePosition()
 	pos_y += v * dy_unit;
 	d += v;
 	position = (position + (int)v) % totalPositions;
+
+	if(pos_x > maxX)
+	{
+		pos_x = maxX;
+		angle = 180 - angle;
+	}
+
+	if(pos_x < minX)
+	{
+		pos_x = minX;
+		angle = 180 - angle;
+	}
+
+	if(pos_y > maxY)
+	{
+		pos_y = maxY;
+		angle = -angle;
+	}
+
+	if(pos_y < minY)
+	{
+		pos_y = minY;
+		angle = -angle;
+	}
 }
 
 void Ball::hit(float u, float a, float angle)

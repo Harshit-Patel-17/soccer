@@ -9,6 +9,7 @@
 #define INCLUDE_BALL_H_
 
 #include "../include/Soccer.h"
+#include "../include/Ground.h"
 
 class Ball {
 	int position;
@@ -19,12 +20,13 @@ class Ball {
 	float u; //Initial velocity
 	float a; //Acceleration
 	float d; //DIstance travelled
+	Ground *ground;
 	Soccer *soccer;
 
 	void applyRotation(float angle, float x, float y);
 	void restoreRotation();
 public:
-	Ball(float pos_x, float pos_y, float angle, Soccer *soccer);
+	Ball(float pos_x, float pos_y, float angle, Soccer *soccer, Ground *ground);
 	virtual ~Ball();
 
 	void draw();

@@ -91,6 +91,43 @@ Soccer::Soccer()
 
 		SDL_FreeSurface(ballSprite);
 	}
+
+	//Load ground texture
+	SDL_Surface *groundSprite;
+	for(int j = 0; j < ballTexSample; j++)
+	{
+		std::string filePath = "../res/ground/1.jpg";
+		groundSprite = IMG_Load(filePath.c_str());
+		if(groundSprite == NULL)
+			std::cerr << "Error loading image '" << filePath << "'" << std::endl;
+
+		glGenTextures(1, &groundTex);
+		glBindTexture(GL_TEXTURE_2D, groundTex);
+
+		int mode;
+
+		switch (groundSprite->format->BytesPerPixel) {
+			case 4:
+				if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
+					mode = GL_BGRA;
+				else
+					mode = GL_RGBA;
+				break;
+
+			case 3:
+				if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
+					mode = GL_BGR;
+				else
+					mode = GL_RGB;
+				break;
+		}
+
+		glTexImage2D(GL_TEXTURE_2D, 0, mode, groundSprite->w, groundSprite->h, 0, mode, GL_UNSIGNED_BYTE, groundSprite->pixels);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		SDL_FreeSurface(groundSprite);
+	}
 }
 
 Soccer::~Soccer()
@@ -116,4 +153,9 @@ GLuint *Soccer::getBallTex()
 int Soccer::getTotalBallPositions()
 {
 	return ballTexSample;
+}
+
+GLuint Soccer::getGroundTex()
+{
+	return groundTex;
 }

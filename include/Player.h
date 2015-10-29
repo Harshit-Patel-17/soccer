@@ -10,6 +10,7 @@
 
 #include "../include/Soccer.h"
 #include "../include/Ball.h"
+#include "../include/Ground.h"
 
 class Player
 {
@@ -21,17 +22,21 @@ class Player
 	float pos_y;
 	float angle;
 	Ball *ball;
+	Ground *ground;
 	Soccer *soccer;
 
 	void applyRotation(float angle, float x, float y);
 	void restoreRotation();
+	float max(float x, float y);
 public:
-	Player(int texture, float mobility, float pos_x, float pos_y, float angle, Soccer *soccer, Ball *ball = NULL);
+	Player(int texture, float mobility, float pos_x, float pos_y, float angle, Soccer *soccer, Ground *ground, Ball *ball = NULL);
 	virtual ~Player();
 
 	void moveForward();
 	void shoot();
 	void setAngle(float angle);
+	float getPosX();
+	float getPosY();
 	void draw();
 };
 

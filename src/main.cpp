@@ -10,16 +10,20 @@
 #include <GL/glut.h>
 #include "../include/Player.h"
 #include "../include/Ball.h"
+#include "../include/Ground.h"
 
 using namespace std;
 
 #define SCREEN_WIDTH 1024*2
 #define SCREEN_HEIGHT 768*2
+#define GROUND_WIDTH 192*2
+#define GROUND_HEIGHT 108*2
 #define TIMER 50
 
 Soccer *soccer;
 Player *player;
 Ball *ball;
+Ground *ground;
 
 bool keysPressed[4];
 
@@ -154,7 +158,7 @@ void initRendering()
 	//glEnable(GL_LIGHT0);
 	//glEnable(GL_LIGHT1);
 	//glEnable(GL_NORMALIZE);
-	glClearColor(0.7f, 1.0f, 0.7f, 1.0f);
+	glClearColor(0.87f, 0.53f, 0.16f, 1.0f);
 }
 
 void handleResize(int w, int h)
@@ -172,10 +176,10 @@ void drawScene()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glOrtho(0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 0.0f, 0.0f);
-    glTranslatef(-50.0f, -50.0f, -150.0f);
+    glTranslatef(-ball->getPosX(), -ball->getPosY(), -150.0f);
 
+    ground->draw();
     player->draw();
-    ball->updatePosition();
     ball->draw();
 
     glutSwapBuffers();
@@ -206,8 +210,9 @@ int main(int argc, char *argv[])
     glutTimerFunc(TIMER, update, 0);
 
     soccer = new Soccer();
-    ball = new Ball(20, 20, 0, soccer);
-    player = new Player(0, 2, 10, 10, 0, soccer, ball);
+    ground = new Ground(GROUND_WIDTH, GROUND_HEIGHT, 0, 0, soccer);
+    ball = new Ball(GROUND_WIDTH/2, GROUND_HEIGHT/2, 0, soccer, ground);
+    player = new Player(0, 2, GROUND_WIDTH/2, GROUND_HEIGHT/2, 0, soccer, ground, ball);
     //ball->hit(4, -0.3, 0);
 
 	glutMainLoop();
