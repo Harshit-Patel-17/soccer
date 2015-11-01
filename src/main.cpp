@@ -8,22 +8,15 @@
 #include <iostream>
 #include <GL/gl.h>
 #include <GL/glut.h>
-#include "../include/Player.h"
-#include "../include/Ball.h"
-#include "../include/Ground.h"
+#include "../include/Game.h"
 
 using namespace std;
 
 #define SCREEN_WIDTH 1024*2
 #define SCREEN_HEIGHT 768*2
-#define GROUND_WIDTH 192*2
-#define GROUND_HEIGHT 108*2
 #define TIMER 50
 
-Soccer *soccer;
-Player *player;
-Ball *ball;
-Ground *ground;
+Game *game;
 
 bool keysPressed[4];
 
@@ -57,18 +50,21 @@ void handleSpecialInput(int key, int x, int y)
         	keysPressed[0] = true;
         	if(keysPressed[2])
         	{
-        		player->setAngle(45);
-        		player->moveForward();
+        		game->movePlayer(45);
+        		//player->setAngle(45);
+        		//player->moveForward();
         	}
         	else if(keysPressed[3])
         	{
-        		player->setAngle(315);
-        		player->moveForward();
+        		game->movePlayer(315);
+        		//player->setAngle(315);
+        		//player->moveForward();
         	}
         	else
         	{
-        		player->setAngle(0);
-        		player->moveForward();
+        		game->movePlayer(0);
+        		//player->setAngle(0);
+        		//player->moveForward();
         	}
             break;
 
@@ -76,18 +72,21 @@ void handleSpecialInput(int key, int x, int y)
         	keysPressed[1] = true;
         	if(keysPressed[2])
 			{
-				player->setAngle(135);
-				player->moveForward();
+        		game->movePlayer(135);
+				//player->setAngle(135);
+				//player->moveForward();
 			}
 			else if(keysPressed[3])
 			{
-				player->setAngle(225);
-				player->moveForward();
+				game->movePlayer(225);
+				//player->setAngle(225);
+				//player->moveForward();
 			}
 			else
 			{
-				player->setAngle(180);
-				player->moveForward();
+				game->movePlayer(180);
+				//player->setAngle(180);
+				//player->moveForward();
 			}
             break;
 
@@ -95,18 +94,21 @@ void handleSpecialInput(int key, int x, int y)
         	keysPressed[2] = true;
         	if(keysPressed[0])
 			{
-				player->setAngle(45);
-				player->moveForward();
+        		game->movePlayer(45);
+				//player->setAngle(45);
+				//player->moveForward();
 			}
 			else if(keysPressed[1])
 			{
-				player->setAngle(135);
-				player->moveForward();
+				game->movePlayer(135);
+				//player->setAngle(135);
+				//player->moveForward();
 			}
 			else
 			{
-				player->setAngle(90);
-				player->moveForward();
+				game->movePlayer(90);
+				//player->setAngle(90);
+				//player->moveForward();
 			}
             break;
 
@@ -114,18 +116,21 @@ void handleSpecialInput(int key, int x, int y)
         	keysPressed[3] = true;
         	if(keysPressed[0])
 			{
-				player->setAngle(315);
-				player->moveForward();
+        		game->movePlayer(315);
+				//player->setAngle(315);
+				//player->moveForward();
 			}
 			else if(keysPressed[1])
 			{
-				player->setAngle(225);
-				player->moveForward();
+				game->movePlayer(225);
+				//player->setAngle(225);
+				//player->moveForward();
 			}
 			else
 			{
-				player->setAngle(270);
-				player->moveForward();
+				game->movePlayer(270);
+				//player->setAngle(270);
+				//player->moveForward();
 			}
             break;
     }
@@ -142,7 +147,7 @@ void handleKeyPress(unsigned char key, int x, int y)
             break;
 
         case 32:
-        	player->shoot();
+        	game->shoot();
         	break;
 	}
 }
@@ -176,11 +181,8 @@ void drawScene()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glOrtho(0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 0.0f, 0.0f);
-    glTranslatef(-ball->getPosX(), -ball->getPosY(), -150.0f);
 
-    ground->draw();
-    player->draw();
-    ball->draw();
+    game->draw();
 
     glutSwapBuffers();
 }
@@ -209,11 +211,26 @@ int main(int argc, char *argv[])
 	glutReshapeFunc(handleResize);
     glutTimerFunc(TIMER, update, 0);
 
-    soccer = new Soccer();
-    ground = new Ground(GROUND_WIDTH, GROUND_HEIGHT, 0, 0, soccer);
-    ball = new Ball(GROUND_WIDTH/2, GROUND_HEIGHT/2, 0, soccer, ground);
-    player = new Player(0, 2, GROUND_WIDTH/2, GROUND_HEIGHT/2, 0, soccer, ground, ball);
+    //soccer = new Soccer();
+    //ground = new Ground(GROUND_WIDTH, GROUND_HEIGHT, 0, 0, soccer);
+    //ball = new Ball(GROUND_WIDTH/2, GROUND_HEIGHT/2, 0, soccer, ground);
+    //player = new Player(0, 2, GROUND_WIDTH/2, GROUND_HEIGHT/2, 0, soccer, ground, ball);
     //ball->hit(4, -0.3, 0);
+
+    if(argc == 2)
+    {
+    	game = new Game("127.0.0.1", atoi(argv[1]), CREATOR);
+    }
+    else if(argc == 3)
+    {
+    	game = new Game("127.0.0.1", atoi(argv[1]), JOINER);
+    	game->join("127.0.0.1", atoi(argv[2]));
+    }
+    else
+    {
+    	std::cout << "Incorrect number of arguments." << std::endl;
+    	return -1;
+    }
 
 	glutMainLoop();
 

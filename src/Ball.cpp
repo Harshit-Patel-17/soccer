@@ -38,6 +38,11 @@ void Ball::restoreRotation()
     glPopMatrix();
 }
 
+Ball::Ball()
+{
+
+}
+
 Ball::Ball(float pos_x, float pos_y, float angle, Soccer *soccer, Ground *ground)
 {
 	this->position = 0;
@@ -131,13 +136,35 @@ float Ball::getPosX()
 	return pos_x;
 }
 
+void Ball::setPosX(float pos_x)
+{
+	this->pos_x = pos_x;
+}
+
 float Ball::getPosY()
 {
 	return pos_y;
 }
 
-float Ball::setPosition(float x, float y)
+void Ball::setPosY(float pos_y)
+{
+	this->pos_y = pos_y;
+}
+
+void Ball::setPosition(float x, float y)
 {
 	this->pos_x = x;
 	this->pos_y = y;
+}
+
+void Ball::operator=(Ball& ball)
+{
+	this->position = ball.position;
+	this->totalPositions = ball.totalPositions;
+	this->pos_x = ball.pos_x;
+	this->pos_y = ball.pos_y;
+	this->angle = ball.angle;
+	this->u = ball.u;
+	this->a = ball.a;
+	this->d = ball.d;
 }

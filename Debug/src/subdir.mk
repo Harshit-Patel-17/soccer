@@ -5,6 +5,7 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
 ../src/Ball.cpp \
+../src/Game.cpp \
 ../src/Ground.cpp \
 ../src/Player.cpp \
 ../src/Soccer.cpp \
@@ -12,6 +13,7 @@ CPP_SRCS += \
 
 OBJS += \
 ./src/Ball.o \
+./src/Game.o \
 ./src/Ground.o \
 ./src/Player.o \
 ./src/Soccer.o \
@@ -19,6 +21,7 @@ OBJS += \
 
 CPP_DEPS += \
 ./src/Ball.d \
+./src/Game.d \
 ./src/Ground.d \
 ./src/Player.d \
 ./src/Soccer.d \

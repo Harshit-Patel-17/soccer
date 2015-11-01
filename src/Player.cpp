@@ -48,6 +48,11 @@ void Player::restoreRotation()
     glPopMatrix();
 }
 
+Player::Player()
+{
+
+}
+
 Player::Player(int texture, float mobility, float pos_x, float pos_y, float angle, Soccer *soccer, Ground *ground, Ball *ball)
 {
 	this->texture = texture;
@@ -141,6 +146,51 @@ void Player::shoot()
 	ball = NULL;
 }
 
+int Player::getTexture()
+{
+	return texture;
+}
+
+void Player::setTexture(int texture)
+{
+	this->texture = texture;
+}
+
+int Player::getTotalPostures()
+{
+	return totalPostures;
+}
+
+void Player::setTotalPostures(int totalPostures)
+{
+	this->totalPostures = totalPostures;
+}
+
+int Player::getPosture()
+{
+	return posture;
+}
+
+void Player::setPosture(int posture)
+{
+	this->posture = posture;
+}
+
+float Player::getMobility()
+{
+	return mobility;
+}
+
+void Player::setMobility(float mobility)
+{
+	this->mobility = mobility;
+}
+
+float Player::getAngle()
+{
+	return angle;
+}
+
 void Player::setAngle(float angle)
 {
 	this->angle = angle;
@@ -151,9 +201,24 @@ float Player::getPosX()
 	return pos_x;
 }
 
+void Player::setPosX(float pos_x)
+{
+	this->pos_x = pos_x;
+}
+
 float Player::getPosY()
 {
 	return pos_y;
+}
+
+void Player::setPosY(float pos_y)
+{
+	this->pos_y = pos_y;
+}
+
+void Player::possess(Ball *ball)
+{
+	this->ball = ball;
 }
 
 void Player::draw()
@@ -173,3 +238,13 @@ void Player::draw()
 	restoreRotation();
 }
 
+void Player::operator=(Player& player)
+{
+	this->texture = player.texture;
+	this->totalPostures = player.totalPostures;
+	this->posture = player.posture;
+	this->mobility = player.mobility;
+	this->pos_x = player.pos_x;
+	this->pos_y = player.pos_y;
+	this->angle = player.angle;
+}

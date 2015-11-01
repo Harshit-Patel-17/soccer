@@ -26,6 +26,7 @@ class Ball {
 	void applyRotation(float angle, float x, float y);
 	void restoreRotation();
 public:
+	Ball();
 	Ball(float pos_x, float pos_y, float angle, Soccer *soccer, Ground *ground);
 	virtual ~Ball();
 
@@ -33,8 +34,12 @@ public:
 	void updatePosition();
 	void hit(float u, float a, float angle);
 	float getPosX();
+	void setPosX(float pos_x);
 	float getPosY();
-	float setPosition(float x, float y);
+	void setPosY(float pos_y);
+	void setPosition(float x, float y);
+
+	void operator=(Ball& ball);
 };
 
 #endif /* INCLUDE_BALL_H_ */

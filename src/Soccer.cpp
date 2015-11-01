@@ -132,7 +132,16 @@ Soccer::Soccer()
 
 Soccer::~Soccer()
 {
-	// TODO Auto-generated destructor stub
+	for(int i = 0; i < PLAYER_TEX; i++)
+	{
+		for(int j = 0; j < playerTexSample[i]; j++)
+			glDeleteTextures(1, &playerTex[i][j]);
+	}
+
+	for(int i = 0; i < ballTexSample; i++)
+		glDeleteTextures(1, &ballTex[i]);
+
+	glDeleteTextures(1, &groundTex);
 }
 
 GLuint *Soccer::getPlayerTex(int player)

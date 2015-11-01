@@ -29,15 +29,30 @@ class Player
 	void restoreRotation();
 	float max(float x, float y);
 public:
+	Player();
 	Player(int texture, float mobility, float pos_x, float pos_y, float angle, Soccer *soccer, Ground *ground, Ball *ball = NULL);
 	virtual ~Player();
 
 	void moveForward();
 	void shoot();
+	int getTexture();
+	void setTexture(int texture);
+	int getTotalPostures();
+	void setTotalPostures(int totalPostures);
+	int getPosture();
+	void setPosture(int posture);
+	float getMobility();
+	void setMobility(float mobility);
+	float getAngle();
 	void setAngle(float angle);
 	float getPosX();
+	void setPosX(float pos_x);
 	float getPosY();
+	void setPosY(float pos_x);
+	void possess(Ball *ball);
 	void draw();
+
+	void operator=(Player& player);
 };
 
 #endif /* INCLUDE_PLAYER_H_ */
