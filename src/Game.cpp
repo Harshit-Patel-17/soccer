@@ -11,8 +11,12 @@
 #include <map>
 #include <errno.h>
 #include <mutex>
+#include <condition_variable>
+#include <chrono>
 
 std::mutex stateMutex;
+std::condition_variable serverRunning;
+std::mutex serverMutex;
 
 std::string getIp() {
 
@@ -114,6 +118,8 @@ bool sendPacket(Game *game, Packet *packet, char *destIp, int destPort)
 
 void stateSender(Game *game, char *destIp, int destPort)
 {
+	std::cout << destIp << ":" << destPort << std::endl;
+
 	int sockFd, portNo, count;
 	struct sockaddr_in serverAddr;
 	const unsigned int bufferSize = sizeof(Packet);
@@ -141,11 +147,12 @@ void stateSender(Game *game, char *destIp, int destPort)
 	serverAddr.sin_port = htons(portNo);
 
 	//Connect to server
-	if(connect(sockFd, (struct sockaddr *) &serverAddr, sizeof(serverAddr)) < 0)
+	while(connect(sockFd, (struct sockaddr *) &serverAddr, sizeof(serverAddr)) < 0)
 	{
 		std::cerr << "Socket connect error." << std::endl;
-		close(sockFd);
-		return;
+		std::this_thread::sleep_for(std::chrono::seconds(2));
+		//close(sockFd);
+		//return;
 	}
 
 	do
@@ -155,6 +162,7 @@ void stateSender(Game *game, char *destIp, int destPort)
 		stateMutex.unlock();
 
 		//Send message to server
+		//std::cout << "Sending state packet." << std::endl;
 		count = write(sockFd, (char *)&packet, sizeof(Packet));
 		if(count < 0)
 		{
@@ -164,12 +172,14 @@ void stateSender(Game *game, char *destIp, int destPort)
 
 		//Receive response from server
 		bzero(buffer, bufferSize);
-		count = read(sockFd, buffer, bufferSize-1);
+		count = read(sockFd, (char *)&packet, sizeof(Packet));
 		if(count < 0)
 		{
 			std::cerr << "Socket read error." << std::endl;
 			break;
 		}
+
+		game->applyState(&packet.state);
 
 		usleep(10000);
 	}while(1);
@@ -185,8 +195,6 @@ void communicate(int newSockFd, Game *game)
 	int count;
 	bool persistent = false;
 
-	std::thread *stateSenderThread;
-
 	Packet packet;
 
 	do
@@ -198,26 +206,23 @@ void communicate(int newSockFd, Game *game)
 		}
 
 		memset(buffer, 0, bufferSize);
-		strcpy(buffer, "Packet received");
-		count = write(newSockFd, buffer, strlen(buffer));
-		if(count < 0) {
-			std::cerr << "Socket writing error." << std::endl;
-			break;
-		}
 
 		switch(packet.type)
 		{
 		case CONNECT:
-			std::cout << "Connect packet received." << std::endl;
-			game->onlinePlayers->add(packet.ip,  packet.port, 1);
-			stateSenderThread = new std::thread(stateSender, game, packet.ip, packet.port);
-			stateSenderThread->detach();
+			//std::cout << "Connect packet received." << std::endl;
+			game->onlinePlayers->add(packet.ip,  packet.port, packet.teamNo, packet.playerId);
+			strcpy(buffer, "Connect packet received");
+			count = write(newSockFd, buffer, strlen(buffer));
 			break;
 
 		case STATE:
-			std::cout << "State packet received." << std::endl;
-			if(game->type == JOINER)
-				game->applyState(&packet.state);
+			//std::cout << "State packet received." << std::endl;
+			game->applyState(&packet.state);
+			stateMutex.lock();
+			packet.state = *(game->state);
+			stateMutex.unlock();
+			count = write(newSockFd, (char *)&packet, sizeof(Packet));
 			persistent = true;
 			break;
 		}
@@ -252,10 +257,10 @@ void serverRunner(Game *game)
 		return;
 	}
 
-	std::cout << "Listening to incoming connection..." << std::endl;
-
 	while(1) {
 		//Start listening to incoming connections
+		std::cout << "Listening to incoming connection..." << std::endl;
+		//serverRunning.notify_all();
 		listen(sockFd, 5);
 		clientLen = sizeof(clientAddr);
 
@@ -294,7 +299,7 @@ void PlayerState::buildPlayer(Player& player)
 	player.setAngle(this->angle);
 }
 
-Game::Game(const char *ip, int port, game_type type)
+Game::Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPlayerId)
 {
 	this->ip[0] = 0;
 	strcpy(this->ip, ip);
@@ -318,16 +323,30 @@ Game::Game(const char *ip, int port, game_type type)
 	}
 
 	team1[0]->possess(ball);
-	myPlayer = team1[0];
-	possession = true;
-	possessor = myPlayer;
+	possessor = team1[0];
+
+	if(myPlayerTeam == 0 && myPlayerId == 0)
+		this->possession = true;
+	else
+		this->possession = false;
+
+	this->myPlayerTeam = myPlayerTeam;
+	this->myPlayerId = myPlayerId;
+
+	state->teamNo = myPlayerTeam;
+	state->playerId = myPlayerId;
+
+	if(myPlayerTeam == 0)
+		this->myPlayer = this->team1[myPlayerId];
+	else
+		this->myPlayer = this->team2[myPlayerId];
 
 	onlinePlayers = new OnlinePlayers();
 
 	this->type = type;
 
-	server = new std::thread(serverRunner, this);
-	server->detach();
+	std::thread server(serverRunner, this);
+	server.detach();
 }
 
 Game::~Game() {
@@ -361,9 +380,14 @@ void Game::join(char *ip, int port)
 	strcpy(packet.ip, this->ip);
 	packet.port = this->port;
 	packet.type = CONNECT;
+	packet.teamNo = myPlayerTeam;
+	packet.playerId = myPlayerId;
 
 	sendPacket(this, &packet, ip, port);
-	onlinePlayers->add(ip, port, 1);
+	onlinePlayers->add(ip, port, 0, 0);
+
+	//std::unique_lock<std::mutex> lk(serverMutex);
+	//serverRunning.wait(lk);
 
 	std::thread stateSenderThread(stateSender, this, ip, port);
 	stateSenderThread.detach();
@@ -386,15 +410,44 @@ void Game::sendState()
 void Game::applyState(State *state)
 {
 	stateMutex.lock();
-	*(this->state) = *state;
-
-	*ball = state->ball;
-
-	for(int i = 0; i < PLAYERS_PER_TEAM; i++)
+	if(type == JOINER)
 	{
-		*(team1[i]) = state->Team1[i];
-		*(team2[i]) = state->Team2[i];
+		//*(this->state) = *state;
+
+		*ball = state->ball;
+		this->state->ball = state->ball;
+
+		for(int i = 0; i < PLAYERS_PER_TEAM; i++)
+		{
+			if(this->state->teamNo != 0 || this->state->playerId != i)
+			{
+				*(team1[i]) = state->Team1[i];
+				this->state->Team1[i] = state->Team1[i];
+			}
+			if(this->state->teamNo != 1 || this->state->playerId != i)
+			{
+				*(team2[i]) = state->Team2[i];
+				this->state->Team2[i] = state->Team2[i];
+			}
+		}
 	}
+	else
+	{
+		//*ball = state->ball;
+		//this->state->ball = state->ball;
+
+		if(state->teamNo == 0)
+		{
+			*(team1[state->playerId]) = state->Team1[state->playerId];
+			this->state->Team1[state->playerId] = state->Team1[state->playerId];
+		}
+		else
+		{
+			*(team2[state->playerId]) = state->Team2[state->playerId];
+			this->state->Team2[state->playerId] = state->Team2[state->playerId];
+		}
+	}
+
 	stateMutex.unlock();
 }
 

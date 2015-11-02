@@ -219,11 +219,11 @@ int main(int argc, char *argv[])
 
     if(argc == 2)
     {
-    	game = new Game("127.0.0.1", atoi(argv[1]), CREATOR);
+    	game = new Game("127.0.0.1", atoi(argv[1]), CREATOR, 0, 0);
     }
     else if(argc == 3)
     {
-    	game = new Game("127.0.0.1", atoi(argv[1]), JOINER);
+    	game = new Game("127.0.0.1", atoi(argv[1]), JOINER, 0, 1);
     	game->join("127.0.0.1", atoi(argv[2]));
     }
     else

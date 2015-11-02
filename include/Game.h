@@ -28,11 +28,13 @@ struct PlayerDetails
 {
 	char ip[16];
 	int port;
+	int teamNo;
 	int playerNo;
 	PlayerDetails()
 	{
 		ip[0] = 0;
 		port = 0;
+		teamNo = -1;
 		playerNo = -1;
 	}
 };
@@ -45,7 +47,7 @@ struct OnlinePlayers
 	{
 		count = 0;
 	}
-	void add(char *ip, int port, int playerNo)
+	void add(char *ip, int port, int teamNo, int playerNo)
 	{
 		if(count == 3)
 		{
@@ -54,6 +56,7 @@ struct OnlinePlayers
 		}
 		strcpy(playerDetails[count].ip, ip);
 		playerDetails[count].port = port;
+		playerDetails[count].teamNo = teamNo;
 		playerDetails[count].playerNo = playerNo;
 		count++;
 	}
@@ -74,6 +77,8 @@ struct PlayerState
 
 struct State
 {
+	int teamNo;
+	int playerId;
 	Player Team1[PLAYERS_PER_TEAM];
 	Player Team2[PLAYERS_PER_TEAM];
 	Ball ball;
@@ -88,6 +93,8 @@ struct Packet
 	int port;
 	packet_type type;
 	State state;
+	int teamNo;
+	int playerId;
 };
 
 class Game
@@ -99,15 +106,16 @@ class Game
 	Player *team1[PLAYERS_PER_TEAM];
 	Player *team2[PLAYERS_PER_TEAM];
 	Player *myPlayer;
+	int myPlayerTeam;
+	int myPlayerId;
 	Player *possessor;
 	State *state;
 	OnlinePlayers *onlinePlayers;
-	std::thread *server;
 	char ip[16];
 	int port;
 	game_type type;
 public:
-	Game(const char *ip, int port, game_type type);
+	Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPlayerId);
 	virtual ~Game();
 
 	void movePlayer(float angle);
