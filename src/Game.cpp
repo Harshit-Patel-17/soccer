@@ -13,6 +13,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <chrono>
+#include <math.h>
 
 std::mutex stateMutex;
 std::condition_variable serverRunning;
@@ -307,7 +308,7 @@ Game::Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPla
 
 	soccer = new Soccer();
 	ground = new Ground(GROUND_WIDTH, GROUND_HEIGHT, 0, 0, soccer);
-	ball = new Ball(GROUND_WIDTH/2, GROUND_HEIGHT/2, 0, soccer, ground);
+	ball = new Ball(GROUND_WIDTH/2 + 10, GROUND_HEIGHT/2, 0, soccer, ground);
 
 	state = new State;
 
@@ -315,20 +316,26 @@ Game::Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPla
 
 	for(int i = 0; i < PLAYERS_PER_TEAM; i++)
 	{
-		team1[i] = new Player(0, 2, GROUND_WIDTH/2, GROUND_HEIGHT/2, 0, soccer, ground, NULL);
-		team2[i] = new Player(0, 2, GROUND_WIDTH/2, GROUND_HEIGHT/2, 0, soccer, ground, NULL);
+		if(i == 0)
+			team1[i] = new Player(0, 2, GROUND_WIDTH/2 + 10, GROUND_HEIGHT/2, 0, soccer, ground, ball);
+		else
+			team1[i] = new Player(0, 2, GROUND_WIDTH/2, GROUND_HEIGHT/2, 0, soccer, ground, ball);
+		team2[i] = new Player(0, 2, GROUND_WIDTH/2, GROUND_HEIGHT/2, 0, soccer, ground, ball);
 
 		state->Team1[i] = *(team1[i]);
 		state->Team2[i] = *(team2[i]);
 	}
 
-	team1[0]->possess(ball);
+	team1[0]->possess();
 	possessor = team1[0];
 
+	possessorPlayerTeam = 0;
+	possessorPlayerId = 0;
+
 	if(myPlayerTeam == 0 && myPlayerId == 0)
-		this->possession = true;
+		possession = true;
 	else
-		this->possession = false;
+		possession = false;
 
 	this->myPlayerTeam = myPlayerTeam;
 	this->myPlayerId = myPlayerId;
@@ -337,16 +344,13 @@ Game::Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPla
 	state->playerId = myPlayerId;
 
 	if(myPlayerTeam == 0)
-		this->myPlayer = this->team1[myPlayerId];
+		myPlayer = team1[myPlayerId];
 	else
-		this->myPlayer = this->team2[myPlayerId];
+		myPlayer = team2[myPlayerId];
 
 	onlinePlayers = new OnlinePlayers();
 
 	this->type = type;
-
-	std::thread server(serverRunner, this);
-	server.detach();
 }
 
 Game::~Game() {
@@ -362,16 +366,125 @@ Game::~Game() {
 	delete soccer;
 }
 
+void Game::startServer()
+{
+	std::thread server(serverRunner, this);
+	server.detach();
+}
+
 void Game::movePlayer(float angle)
 {
 	myPlayer->setAngle(angle);
 	myPlayer->moveForward();
+
+	if(possessorPlayerTeam != myPlayerTeam && !ball->isOnShoot())
+	{
+		float dx = myPlayer->getPosX() - ball->getPosX();
+		float dy = myPlayer->getPosY() - ball->getPosY();
+		float dist = sqrt(dx*dx + dy*dy);
+
+		if(dist < HIT_THRESHOLD)
+		{
+			possession = true;
+			myPlayer->possess();
+			possessor = myPlayer;
+			possessorPlayerTeam = myPlayerTeam;
+			possessorPlayerId = myPlayerId;
+		}
+	}
+}
+
+void Game::moveBall()
+{
+	float u = ball->getU();
+	float a = ball->getA();
+	float d = ball->getD();
+	float angle = ball->getAngle();
+
+	float oldX = ball->getPosX();
+	float oldY = ball->getPosY();
+
+	if(u*u + 2*a*d < 0)
+			return;
+
+	float dx_unit = cos(angle * 3.1415 / 180);
+	float dy_unit = sin(angle * 3.1415 / 180);
+
+	float v = sqrt(u*u + 2*a*d);
+	float newX = oldX + v * dx_unit;
+	float newY = oldY + v * dy_unit;
+
+	ball->updatePosition();
+	applyBallDeflection(oldX, oldY, newX, newY);
+}
+
+void Game::applyBallDeflection(float oldX, float oldY, float newX, float newY)
+{
+	for(int i = 0; i < PLAYERS_PER_TEAM; i++)
+	{
+		for(int j = 0; j < 2; j++)
+		{
+			float dx, dy, dist, theta, p1, p2, x, y;
+
+			if(j == 0)
+			{
+				if(possessorPlayerTeam == 0 && possessorPlayerId == i)
+					continue;
+				dx = newX - state->Team1[i].getPosX();
+				dy = newY - state->Team1[i].getPosY();
+			}
+			else
+			{
+				if(possessorPlayerTeam == 1 && possessorPlayerId == i)
+					continue;
+				dx = newX - state->Team2[i].getPosX();
+				dy = newY - state->Team2[i].getPosY();
+			}
+			dist = sqrt(dx*dx + dy*dy);
+
+			if(dist < 2*HIT_THRESHOLD)
+			{
+				float ballAngle = ball->getAngle() * 3.1415 / 180;
+				float ballDirection = (-dx * cos(ballAngle) - dy * sin(ballAngle)) / dist;
+				if(ballDirection < 0)
+					continue;
+
+				theta = atan(dy/dx);
+				if(dx < 0)
+					theta = 3.1415 + theta;
+
+				float cost = cos(theta);
+				float sint = sin(theta);
+
+				p1 = cost*cost - sint*sint;
+				p2 = 2*cost*sint;
+
+				x = p1*(oldX - newX) + p2*(oldY - newY) + newX;
+				y = p1*(newY - oldY) + p2*(oldX - newX) + newY;
+
+				float new_dx = x - newX;
+				float new_dy = y - newY;
+
+				theta = atan(new_dy / new_dx);
+				if(new_dx < 0)
+					theta = 3.1415 + theta;
+
+				ball->setAngle(theta * 180 / 3.1415);
+				return;
+			}
+		}
+	}
 }
 
 void Game::shoot()
 {
 	if(possession && myPlayer == possessor)
 		myPlayer->shoot();
+
+	possession = false;
+	possessorPlayerTeam = -1;
+	possessorPlayerId = -1;
+	possessor = NULL;
 }
 
 void Game::join(char *ip, int port)
@@ -453,7 +566,7 @@ void Game::applyState(State *state)
 
 void Game::draw()
 {
-	glTranslatef(-ball->getPosX(), -ball->getPosY(), -150.0f);
+	glTranslatef(-ball->getPosX(), -ball->getPosY(), -200.0f);
 
 	ground->draw();
 
@@ -463,6 +576,7 @@ void Game::draw()
 		team2[i]->draw();
 	}
 
+	moveBall();
 	ball->draw();
 
 	stateMutex.lock();

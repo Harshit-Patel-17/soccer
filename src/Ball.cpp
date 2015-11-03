@@ -45,6 +45,7 @@ Ball::Ball()
 
 Ball::Ball(float pos_x, float pos_y, float angle, Soccer *soccer, Ground *ground)
 {
+	this->onShoot = false;
 	this->position = 0;
 	this->totalPositions = soccer->getTotalBallPositions();
 	this->ground = ground;
@@ -63,7 +64,7 @@ Ball::~Ball() {
 
 void Ball::draw()
 {
-	updatePosition();
+	//updatePosition();
 	glBindTexture(GL_TEXTURE_2D, soccer->getBallTex()[position]);
 
 	int width = 62 / 8;
@@ -167,4 +168,34 @@ void Ball::operator=(Ball& ball)
 	this->u = ball.u;
 	this->a = ball.a;
 	this->d = ball.d;
+}
+
+bool Ball::isOnShoot()
+{
+	return onShoot;
+}
+
+float Ball::getU()
+{
+	return u;
+}
+
+float Ball::getA()
+{
+	return a;
+}
+
+float Ball::getD()
+{
+	return d;
+}
+
+float Ball::getAngle()
+{
+	return angle;
+}
+
+void Ball::setAngle(float angle)
+{
+	this->angle = angle;
 }

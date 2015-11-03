@@ -220,10 +220,12 @@ int main(int argc, char *argv[])
     if(argc == 2)
     {
     	game = new Game("127.0.0.1", atoi(argv[1]), CREATOR, 0, 0);
+    	game->startServer();
     }
     else if(argc == 3)
     {
     	game = new Game("127.0.0.1", atoi(argv[1]), JOINER, 0, 1);
+    	game->startServer();
     	game->join("127.0.0.1", atoi(argv[2]));
     }
     else

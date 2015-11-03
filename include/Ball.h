@@ -12,6 +12,7 @@
 #include "../include/Ground.h"
 
 class Ball {
+	bool onShoot;
 	int position;
 	int totalPositions;
 	float pos_x;
@@ -38,6 +39,12 @@ public:
 	float getPosY();
 	void setPosY(float pos_y);
 	void setPosition(float x, float y);
+	float getAngle();
+	void setAngle(float angle);
+	bool isOnShoot();
+	float getU();
+	float getA();
+	float getD();
 
 	void operator=(Ball& ball);
 };

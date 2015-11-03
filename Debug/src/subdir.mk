@@ -9,7 +9,8 @@ CPP_SRCS += \
 ../src/Ground.cpp \
 ../src/Player.cpp \
 ../src/Soccer.cpp \
-../src/main.cpp 
+../src/main.cpp \
+../src/state.cpp 
 
 OBJS += \
 ./src/Ball.o \
@@ -17,7 +18,8 @@ OBJS += \
 ./src/Ground.o \
 ./src/Player.o \
 ./src/Soccer.o \
-./src/main.o 
+./src/main.o \
+./src/state.o 
 
 CPP_DEPS += \
 ./src/Ball.d \
@@ -25,7 +27,8 @@ CPP_DEPS += \
 ./src/Ground.d \
 ./src/Player.d \
 ./src/Soccer.d \
-./src/main.d 
+./src/main.d \
+./src/state.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes

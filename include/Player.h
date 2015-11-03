@@ -12,8 +12,11 @@
 #include "../include/Ball.h"
 #include "../include/Ground.h"
 
+#define HIT_THRESHOLD 5
+
 class Player
 {
+	bool possession;
 	int texture;
 	int totalPostures;
 	int posture;
@@ -49,7 +52,7 @@ public:
 	void setPosX(float pos_x);
 	float getPosY();
 	void setPosY(float pos_x);
-	void possess(Ball *ball);
+	void possess();
 	void draw();
 
 	void operator=(Player& player);

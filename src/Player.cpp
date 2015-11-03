@@ -8,8 +8,6 @@
 #include "../include/Player.h"
 #include <math.h>
 
-#define HIT_THRESHOLD 5
-
 float Player::max(float x, float y)
 {
 	if(x >= y)
@@ -65,8 +63,7 @@ Player::Player(int texture, float mobility, float pos_x, float pos_y, float angl
 	this->ball = ball;
 	this->soccer = soccer;
 	this->ground = ground;
-	if(ball != NULL)
-		ball->setPosition(pos_x, pos_y);
+	this->ball = ball;
 }
 
 Player::~Player() {
@@ -106,7 +103,7 @@ void Player::moveForward()
 	stateCounter = 0;
 	posture = (posture + 2) % totalPostures;
 
-	if(ball != NULL)
+	if(possession)
 	{
 		float dx = ball->getPosX() - pos_x;
 		float dy = ball->getPosY() - pos_y;
@@ -143,7 +140,7 @@ void Player::shoot()
 	if(ball == NULL)
 		return;
 	ball->hit(8, -0.3, angle);
-	ball = NULL;
+	possession = false;
 }
 
 int Player::getTexture()
@@ -216,9 +213,9 @@ void Player::setPosY(float pos_y)
 	this->pos_y = pos_y;
 }
 
-void Player::possess(Ball *ball)
+void Player::possess()
 {
-	this->ball = ball;
+	this->possession = true;
 }
 
 void Player::draw()

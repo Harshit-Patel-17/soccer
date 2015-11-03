@@ -100,6 +100,8 @@ struct Packet
 class Game
 {
 	bool possession;
+	int possessorPlayerTeam;
+	int possessorPlayerId;
 	Soccer *soccer;
 	Ground *ground;
 	Ball *ball;
@@ -118,7 +120,10 @@ public:
 	Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPlayerId);
 	virtual ~Game();
 
+	void startServer();
 	void movePlayer(float angle);
+	void moveBall();
+	void applyBallDeflection(float oldX, float oldY, float newX, float newY);
 	void shoot();
 	void join(char *ip, int port);
 	void sendState();
