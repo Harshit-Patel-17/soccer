@@ -63,7 +63,7 @@ Player::Player(int texture, float mobility, float pos_x, float pos_y, float angl
 	this->ball = ball;
 	this->soccer = soccer;
 	this->ground = ground;
-	this->ball = ball;
+	this->possession = false;
 }
 
 Player::~Player() {

@@ -51,20 +51,14 @@ void handleSpecialInput(int key, int x, int y)
         	if(keysPressed[2])
         	{
         		game->movePlayer(45);
-        		//player->setAngle(45);
-        		//player->moveForward();
         	}
         	else if(keysPressed[3])
         	{
         		game->movePlayer(315);
-        		//player->setAngle(315);
-        		//player->moveForward();
         	}
         	else
         	{
         		game->movePlayer(0);
-        		//player->setAngle(0);
-        		//player->moveForward();
         	}
             break;
 
@@ -73,20 +67,14 @@ void handleSpecialInput(int key, int x, int y)
         	if(keysPressed[2])
 			{
         		game->movePlayer(135);
-				//player->setAngle(135);
-				//player->moveForward();
 			}
 			else if(keysPressed[3])
 			{
 				game->movePlayer(225);
-				//player->setAngle(225);
-				//player->moveForward();
 			}
 			else
 			{
 				game->movePlayer(180);
-				//player->setAngle(180);
-				//player->moveForward();
 			}
             break;
 
@@ -95,20 +83,14 @@ void handleSpecialInput(int key, int x, int y)
         	if(keysPressed[0])
 			{
         		game->movePlayer(45);
-				//player->setAngle(45);
-				//player->moveForward();
 			}
 			else if(keysPressed[1])
 			{
 				game->movePlayer(135);
-				//player->setAngle(135);
-				//player->moveForward();
 			}
 			else
 			{
 				game->movePlayer(90);
-				//player->setAngle(90);
-				//player->moveForward();
 			}
             break;
 
@@ -117,20 +99,14 @@ void handleSpecialInput(int key, int x, int y)
         	if(keysPressed[0])
 			{
         		game->movePlayer(315);
-				//player->setAngle(315);
-				//player->moveForward();
 			}
 			else if(keysPressed[1])
 			{
 				game->movePlayer(225);
-				//player->setAngle(225);
-				//player->moveForward();
 			}
 			else
 			{
 				game->movePlayer(270);
-				//player->setAngle(270);
-				//player->moveForward();
 			}
             break;
     }
