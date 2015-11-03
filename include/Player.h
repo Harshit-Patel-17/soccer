@@ -21,6 +21,7 @@ class Player
 	float pos_x;
 	float pos_y;
 	float angle;
+	bool inPossession;
 	Ball *ball;
 	Ground *ground;
 	Soccer *soccer;
@@ -30,7 +31,7 @@ class Player
 	float max(float x, float y);
 public:
 	Player();
-	Player(int texture, float mobility, float pos_x, float pos_y, float angle, Soccer *soccer, Ground *ground, Ball *ball = NULL);
+	Player(int texture, float mobility, float pos_x, float pos_y, float angle, Soccer *soccer, Ground *ground, Ball *ball, bool isPossession);
 	virtual ~Player();
 
 	void moveForward();
@@ -50,6 +51,8 @@ public:
 	float getPosY();
 	void setPosY(float pos_x);
 	void possess(Ball *ball);
+	void setPossession();
+	void setBall(Ball *ball);
 	void draw();
 
 	void operator=(Player& player);

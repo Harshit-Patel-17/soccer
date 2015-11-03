@@ -22,7 +22,7 @@
 
 #define GROUND_WIDTH 192*2
 #define GROUND_HEIGHT 108*2
-#define PLAYERS_PER_TEAM 2
+#define PLAYERS_PER_TEAM 3
 
 struct PlayerDetails
 {

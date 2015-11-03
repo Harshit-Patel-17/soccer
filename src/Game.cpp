@@ -315,14 +315,22 @@ Game::Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPla
 
 	for(int i = 0; i < PLAYERS_PER_TEAM; i++)
 	{
-		team1[i] = new Player(0, 2, GROUND_WIDTH/2, GROUND_HEIGHT/2, 0, soccer, ground, NULL);
-		team2[i] = new Player(0, 2, GROUND_WIDTH/2, GROUND_HEIGHT/2, 0, soccer, ground, NULL);
+		if(i==2) // goalkeeper
+		{
+			team1[i] = new Player(0, 2, 40.0f, GROUND_HEIGHT/2, 0, soccer, ground, ball, false);
+			team2[i] = new Player(0, 2, 344.0f, GROUND_HEIGHT/2, 0, soccer, ground, ball, false);
+		}
+		else
+		{
+			team1[i] = new Player(0, 2, GROUND_WIDTH/2, GROUND_HEIGHT/2, 0, soccer, ground, ball, false);
+			team2[i] = new Player(0, 2, GROUND_WIDTH/2, GROUND_HEIGHT/2, 0, soccer, ground, ball, false);
+		}
 
 		state->Team1[i] = *(team1[i]);
 		state->Team2[i] = *(team2[i]);
 	}
 
-	team1[0]->possess(ball);
+	team1[0]->setPossession();
 	possessor = team1[0];
 
 	if(myPlayerTeam == 0 && myPlayerId == 0)
@@ -456,14 +464,15 @@ void Game::draw()
 	glTranslatef(-ball->getPosX(), -ball->getPosY(), -150.0f);
 
 	ground->draw();
+	ball->draw();
 
 	for(int i = 0; i < PLAYERS_PER_TEAM; i++)
 	{
 		team1[i]->draw();
+		team1[i]->setBall(ball);
 		team2[i]->draw();
+		team2[i]->setBall(ball);
 	}
-
-	ball->draw();
 
 	stateMutex.lock();
 	state->ball = *ball;

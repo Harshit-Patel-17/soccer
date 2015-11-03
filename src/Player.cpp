@@ -53,7 +53,7 @@ Player::Player()
 
 }
 
-Player::Player(int texture, float mobility, float pos_x, float pos_y, float angle, Soccer *soccer, Ground *ground, Ball *ball)
+Player::Player(int texture, float mobility, float pos_x, float pos_y, float angle, Soccer *soccer, Ground *ground, Ball *ball, bool inPossession)
 {
 	this->texture = texture;
 	this->totalPostures = soccer->getTotalPlayerPostures(texture);
@@ -65,8 +65,9 @@ Player::Player(int texture, float mobility, float pos_x, float pos_y, float angl
 	this->ball = ball;
 	this->soccer = soccer;
 	this->ground = ground;
-	if(ball != NULL)
-		ball->setPosition(pos_x, pos_y);
+	this->inPossession = inPossession;
+
+	//ball->setPosition(pos_x, pos_y);
 }
 
 Player::~Player() {
@@ -106,7 +107,7 @@ void Player::moveForward()
 	stateCounter = 0;
 	posture = (posture + 2) % totalPostures;
 
-	if(ball != NULL)
+	if(inPossession)
 	{
 		float dx = ball->getPosX() - pos_x;
 		float dy = ball->getPosY() - pos_y;
@@ -123,6 +124,10 @@ void Player::moveForward()
 	{
 		pos_x = pos_x + mobility * cos(angle * 3.1415 / 180);
 		pos_y = pos_y + mobility * sin(angle * 3.1415 / 180);
+		if(abs((int)pos_x - (int)ball->getPosX())<=2 && abs((int)pos_y - (int)ball->getPosY())<=2)
+		{
+			inPossession = true;
+		}
 	}
 
 	if(pos_x > maxX)
@@ -143,7 +148,7 @@ void Player::shoot()
 	if(ball == NULL)
 		return;
 	ball->hit(8, -0.3, angle);
-	ball = NULL;
+	inPossession = false;
 }
 
 int Player::getTexture()
@@ -217,6 +222,16 @@ void Player::setPosY(float pos_y)
 }
 
 void Player::possess(Ball *ball)
+{
+	this->ball = ball;
+}
+
+void Player::setPossession()
+{
+	this->inPossession = true;
+}
+
+void Player::setBall(Ball *ball)
 {
 	this->ball = ball;
 }
