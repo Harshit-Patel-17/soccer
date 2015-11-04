@@ -107,6 +107,8 @@ class Game
 	Ball *ball;
 	Player *team1[PLAYERS_PER_TEAM];
 	Player *team2[PLAYERS_PER_TEAM];
+	int team1Goals;
+	int team2Goals;
 	Player *myPlayer;
 	int myPlayerTeam;
 	int myPlayerId;
@@ -124,11 +126,13 @@ public:
 	void movePlayer(float angle);
 	void moveBall();
 	void applyBallDeflection(float oldX, float oldY, float newX, float newY);
-	void shoot();
+	void shoot(float initial_velocity);
 	void join(char *ip, int port);
 	void sendState();
 	void applyState(State *state);
 	void draw();
+	int getTeam1Goals();
+	int getTeam2Goals();
 
 	friend void serverRunner(Game *game);
 	friend bool sendPacket(Game *game, Packet *packet, char *destIp, int destPort);

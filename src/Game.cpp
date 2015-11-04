@@ -308,7 +308,7 @@ Game::Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPla
 
 	soccer = new Soccer();
 	ground = new Ground(GROUND_WIDTH, GROUND_HEIGHT, 0, 0, soccer);
-	ball = new Ball(GROUND_WIDTH/2 + 10, GROUND_HEIGHT/2, 0, soccer, ground);
+	ball = new Ball(GROUND_WIDTH/2 + 2.0, GROUND_HEIGHT/2, 0, soccer, ground);
 
 	state = new State;
 
@@ -316,11 +316,27 @@ Game::Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPla
 
 	for(int i = 0; i < PLAYERS_PER_TEAM; i++)
 	{
-		if(i == 0)
+		/*if(i == 0)
 			team1[i] = new Player(0, 2, GROUND_WIDTH/2 + 10, GROUND_HEIGHT/2, 0, soccer, ground, ball);
 		else
 			team1[i] = new Player(0, 2, GROUND_WIDTH/2, GROUND_HEIGHT/2, 0, soccer, ground, ball);
-		team2[i] = new Player(0, 2, GROUND_WIDTH/2, GROUND_HEIGHT/2, 0, soccer, ground, ball);
+		team2[i] = new Player(0, 2, GROUND_WIDTH/2, GROUND_HEIGHT/2, 0, soccer, ground, ball);*/
+
+		if(i==2) //goalkeeper
+		{
+			team1[i] = new Player(0, 2, 50.0f, GROUND_HEIGHT/2, 0, soccer, ground, ball);
+			team2[i] = new Player(0, 2, 334.0f, GROUND_HEIGHT/2, 0, soccer, ground, ball);
+		}
+		else if(i==0)
+		{
+			team1[i] = new Player(0, 2, GROUND_WIDTH/2, GROUND_HEIGHT/2, 0, soccer, ground, ball); // kickOff team player 1
+			team2[i] = new Player(0, 2, GROUND_WIDTH/2 + 20.0, GROUND_HEIGHT/2, 0, soccer, ground, ball);
+		}
+		else
+		{
+			team1[i] = new Player(0, 2, (GROUND_WIDTH/2) - 20.0, GROUND_HEIGHT/2 - 50.0, 0, soccer, ground, ball); // kickOff team player 2
+			team2[i] = new Player(0, 2, GROUND_WIDTH/2 + 20.0, GROUND_HEIGHT/2 - 50.0, 0, soccer, ground, ball);
+		}
 
 		state->Team1[i] = *(team1[i]);
 		state->Team2[i] = *(team2[i]);
@@ -351,6 +367,8 @@ Game::Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPla
 	onlinePlayers = new OnlinePlayers();
 
 	this->type = type;
+
+	this->team1Goals = this->team2Goals = 0;
 }
 
 Game::~Game() {
@@ -376,6 +394,9 @@ void Game::movePlayer(float angle)
 {
 	myPlayer->setAngle(angle);
 	myPlayer->moveForward();
+
+	team1[2]->positionGoalkeeper();
+	team2[2]->positionGoalkeeper();
 
 	if(possessorPlayerTeam != myPlayerTeam && !ball->isOnShoot())
 	{
@@ -416,6 +437,9 @@ void Game::moveBall()
 
 	ball->updatePosition();
 	applyBallDeflection(oldX, oldY, newX, newY);
+
+	team1[2]->positionGoalkeeper();
+	team2[2]->positionGoalkeeper();
 }
 
 void Game::applyBallDeflection(float oldX, float oldY, float newX, float newY)
@@ -476,15 +500,25 @@ void Game::applyBallDeflection(float oldX, float oldY, float newX, float newY)
 	}
 }
 
-void Game::shoot()
+void Game::shoot(float initial_velocity)
 {
 	if(possession && myPlayer == possessor)
-		myPlayer->shoot();
+		myPlayer->shoot(initial_velocity);
 
 	possession = false;
 	possessorPlayerTeam = -1;
 	possessorPlayerId = -1;
 	possessor = NULL;
+}
+
+int Game::getTeam1Goals()
+{
+	return team1Goals;
+}
+
+int Game::getTeam2Goals()
+{
+	return team2Goals;
 }
 
 void Game::join(char *ip, int port)
@@ -575,6 +609,7 @@ void Game::draw()
 		team1[i]->draw();
 		team2[i]->draw();
 	}
+
 
 	moveBall();
 	ball->draw();

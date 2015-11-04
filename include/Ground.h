@@ -28,6 +28,8 @@ public:
 	float getMinY();
 	float getMaxY();
 	void draw();
+	float getGroundHeight();
+	float getGroundWidth();
 };
 
 #endif /* INCLUDE_GROUND_H_ */

@@ -135,11 +135,44 @@ void Player::moveForward()
 		pos_y = minY;
 }
 
-void Player::shoot()
+void Player::positionGoalkeeper()
+{
+	if(ball->getPosY() < pos_y)
+	{
+		angle = 270;
+	}
+	else if(ball->getPosY() > pos_y)
+	{
+		angle = 90;
+	}
+	else
+	{
+		angle = 0;
+		posture = 0;
+		return;
+	}
+
+	static int stateCounter = 0;
+	if(++stateCounter != 2)
+		return;
+	stateCounter = 0;
+	posture = (posture + 2) % totalPostures;
+
+
+	pos_x = pos_x + mobility * cos(angle * 3.1415 / 180);
+	pos_y = pos_y + mobility * sin(angle * 3.1415 / 180);
+
+	if(pos_y > ground->getGroundHeight()/2.0 + 25.0)
+		pos_y = ground->getGroundHeight()/2.0 + 25.0;
+	if(pos_y < ground->getGroundHeight()/2.0 - 25.0)
+			pos_y = ground->getGroundHeight()/2.0 - 25.0;
+}
+
+void Player::shoot(float initial_velocity)
 {
 	if(ball == NULL)
 		return;
-	ball->hit(8, -0.3, angle);
+	ball->hit(initial_velocity, -0.3, angle);
 	possession = false;
 }
 

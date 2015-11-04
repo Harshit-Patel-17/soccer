@@ -37,7 +37,8 @@ public:
 	virtual ~Player();
 
 	void moveForward();
-	void shoot();
+	void positionGoalkeeper();
+	void shoot(float initial_velocity);
 	int getTexture();
 	void setTexture(int texture);
 	int getTotalPostures();

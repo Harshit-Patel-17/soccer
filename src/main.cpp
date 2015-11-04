@@ -6,6 +6,8 @@
  */
 
 #include <iostream>
+#include <time.h>
+#include <math.h>
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include "../include/Game.h"
@@ -19,6 +21,9 @@ using namespace std;
 Game *game;
 
 bool keysPressed[4];
+clock_t shootPressStart,shootPressEnd;
+bool isShootKeyPressed = false;
+clock_t startTime,endTime;
 
 void handleSpecialUpInput(int key,int x,int y)
 {
@@ -114,6 +119,25 @@ void handleSpecialInput(int key, int x, int y)
 
 }
 
+void handleKeyUp(unsigned char key, int x, int y)
+{
+	switch(key)
+	{
+	case 's':
+		if(isShootKeyPressed)
+		{
+			shootPressEnd = clock();
+			double cpu_time_used = ((double) (shootPressEnd - shootPressStart)) / CLOCKS_PER_SEC;
+			float initial_velocity = cpu_time_used + 5.0;
+			printf("Key up %c",key);
+			printf("%f ",initial_velocity);
+			game->shoot(8.0);
+			isShootKeyPressed = false;
+		}
+		break;
+	}
+}
+
 void handleKeyPress(unsigned char key, int x, int y)
 {
 	switch(key)
@@ -122,8 +146,14 @@ void handleKeyPress(unsigned char key, int x, int y)
             exit(0);
             break;
 
-        case 32:
-        	game->shoot();
+        case 's':
+        	//game->shoot();
+        	if(!isShootKeyPressed)
+        	{
+        		printf("Key down %c",key);
+        		isShootKeyPressed = true;
+        		shootPressStart = clock();
+        	}
         	break;
 	}
 }
@@ -150,6 +180,43 @@ void handleResize(int w, int h)
 	gluPerspective(45.0, (double)w/(double)h, 1.0, 200.0);
 }
 
+void drawText(string message,float x,float y)
+{
+	int i, len;
+
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+
+	glLoadIdentity();
+	glTranslatef(0.0f, 0.0f, -5.0f);
+	glRasterPos2f(x,y);
+
+	glDisable(GL_TEXTURE);
+	glDisable(GL_TEXTURE_2D);
+	for (i = 0, len = message.size(); i < len; i++)
+	{
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, (int)message[i]);
+	}
+	glEnable(GL_TEXTURE);
+	glEnable(GL_TEXTURE_2D);
+}
+
+void showScoreAndTime()
+{
+	string message = "TEAM1 " + std::to_string(game->getTeam1Goals()) + "-" +
+			std::to_string(game->getTeam2Goals()) + " TEAM2 ";
+	endTime = clock();
+	float time_spent = (float)(endTime - startTime) / CLOCKS_PER_SEC;
+	time_spent = floorf(time_spent * 100) / 100 - 0.40;
+	time_spent *= 100;
+	int minutes = ((int)time_spent)/60;
+	int seconds = ((int)time_spent)%60;
+	if(seconds < 10)
+		message += std::to_string(minutes) + ":0" + std::to_string(seconds);
+	else
+		message += std::to_string(minutes) + ":" + std::to_string(seconds);
+	drawText(message,-3.5f, 1.7f);
+}
+
 void drawScene()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -159,6 +226,8 @@ void drawScene()
     glOrtho(0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 0.0f, 0.0f);
 
     game->draw();
+
+    showScoreAndTime();
 
     glutSwapBuffers();
 }
@@ -180,8 +249,10 @@ int main(int argc, char *argv[])
 
 	for(int i=0;i<4;i++) keysPressed[i] = false;
 
+	startTime = clock();
 	glutDisplayFunc(drawScene);
 	glutKeyboardFunc(handleKeyPress);
+	glutKeyboardUpFunc(handleKeyUp);
 	glutSpecialFunc(handleSpecialInput);
 	glutSpecialUpFunc(handleSpecialUpInput);
 	glutReshapeFunc(handleResize);
