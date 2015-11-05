@@ -137,7 +137,7 @@ void Player::moveForward()
 
 void Player::shoot()
 {
-	if(ball == NULL)
+	if(possession == false)
 		return;
 	ball->hit(8, -0.3, angle);
 	possession = false;
@@ -218,6 +218,16 @@ void Player::possess()
 	this->possession = true;
 }
 
+void Player::release()
+{
+	this->possession = false;
+}
+
+bool Player::InPossession()
+{
+	return possession;
+}
+
 void Player::draw()
 {
 	glBindTexture(GL_TEXTURE_2D, soccer->getPlayerTex(texture)[posture]);
@@ -244,4 +254,5 @@ void Player::operator=(Player& player)
 	this->pos_x = player.pos_x;
 	this->pos_y = player.pos_y;
 	this->angle = player.angle;
+	this->possession = player.possession;
 }

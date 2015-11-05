@@ -53,6 +53,8 @@ public:
 	float getPosY();
 	void setPosY(float pos_x);
 	void possess();
+	void release();
+	bool InPossession();
 	void draw();
 
 	void operator=(Player& player);

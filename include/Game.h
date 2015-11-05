@@ -16,6 +16,7 @@
 #include <mutex>
 #include <iostream>
 #include <string.h>
+#include <queue>
 #include "../include/Player.h"
 #include "../include/Ball.h"
 #include "../include/Ground.h"
@@ -62,46 +63,39 @@ struct OnlinePlayers
 	}
 };
 
-struct PlayerState
-{
-	int texture;
-	int totalPostures;
-	int posture;
-	float mobility;
-	float pos_x;
-	float pos_y;
-	float angle;
-	void buildFromPlayer(Player& player);
-	void buildPlayer(Player& player);
-};
-
 struct State
 {
-	int teamNo;
-	int playerId;
 	Player Team1[PLAYERS_PER_TEAM];
 	Player Team2[PLAYERS_PER_TEAM];
 	Ball ball;
 };
 
-enum packet_type {CONNECT, STATE};
+enum packet_type {CONNECT, STATE, CONTROL};
 enum game_type {CREATOR, JOINER};
+enum control_type {MOVE, SHOOT, NONE};
+
+struct Control
+{
+	control_type type;
+	int teamNo;
+	int playerId;
+	float angle;
+};
 
 struct Packet
 {
 	char ip[16];
 	int port;
 	packet_type type;
-	State state;
 	int teamNo;
 	int playerId;
+
+	State state;
+	Control control;
 };
 
 class Game
 {
-	bool possession;
-	int possessorPlayerTeam;
-	int possessorPlayerId;
 	Soccer *soccer;
 	Ground *ground;
 	Ball *ball;
@@ -110,8 +104,8 @@ class Game
 	Player *myPlayer;
 	int myPlayerTeam;
 	int myPlayerId;
-	Player *possessor;
 	State *state;
+	std::queue<Control> *controlQ;
 	OnlinePlayers *onlinePlayers;
 	char ip[16];
 	int port;
@@ -121,18 +115,27 @@ public:
 	virtual ~Game();
 
 	void startServer();
-	void movePlayer(float angle);
+	game_type getType();
+	int getMyPlayerTeam();
+	int getMyPlayerId();
+	void movePlayer(int playerTeam, int playerId, float angle);
 	void moveBall();
 	void applyBallDeflection(float oldX, float oldY, float newX, float newY);
-	void shoot();
+	bool isBallInPossession();
+	int possessorPlayerTeam();
+	int possessorPlayerId();
+	void setBallFree(); //No possession by any player
+	void shoot(int playerTeam, int playerId);
 	void join(char *ip, int port);
-	void sendState();
 	void applyState(State *state);
+	void applyControl(Control control);
+	void insertControl(Control control);
+	Control removeControl();
 	void draw();
 
 	friend void serverRunner(Game *game);
 	friend bool sendPacket(Game *game, Packet *packet, char *destIp, int destPort);
-	friend void stateSender(Game *game, char *destIp, int destPort);
+	friend void controlSender(Game *game, char *destIp, int destPort);
 	friend void communicate(int newSockFd, Game *game);
 };
 

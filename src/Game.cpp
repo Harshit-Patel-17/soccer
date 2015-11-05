@@ -16,8 +16,7 @@
 #include <math.h>
 
 std::mutex stateMutex;
-std::condition_variable serverRunning;
-std::mutex serverMutex;
+std::mutex queueMutex;
 
 std::string getIp() {
 
@@ -117,7 +116,7 @@ bool sendPacket(Game *game, Packet *packet, char *destIp, int destPort)
 	return true;
 }
 
-void stateSender(Game *game, char *destIp, int destPort)
+void controlSender(Game *game, char *destIp, int destPort)
 {
 	std::cout << destIp << ":" << destPort << std::endl;
 
@@ -131,7 +130,6 @@ void stateSender(Game *game, char *destIp, int destPort)
 	Packet packet;
 	strcpy(packet.ip, game->ip);
 	packet.port = game->port;
-	packet.type = STATE;
 
 	//Create TCP socket
 	sockFd = socket(AF_INET, SOCK_STREAM, 0);
@@ -158,9 +156,8 @@ void stateSender(Game *game, char *destIp, int destPort)
 
 	do
 	{
-		stateMutex.lock();
-		packet.state = *(game->state);
-		stateMutex.unlock();
+		packet.type = CONTROL;
+		packet.control = game->removeControl();
 
 		//Send message to server
 		//std::cout << "Sending state packet." << std::endl;
@@ -217,9 +214,10 @@ void communicate(int newSockFd, Game *game)
 			count = write(newSockFd, buffer, strlen(buffer));
 			break;
 
-		case STATE:
+		case CONTROL:
 			//std::cout << "State packet received." << std::endl;
-			game->applyState(&packet.state);
+			game->applyControl(packet.control);
+			packet.type = STATE;
 			stateMutex.lock();
 			packet.state = *(game->state);
 			stateMutex.unlock();
@@ -278,28 +276,6 @@ void serverRunner(Game *game)
 	close(sockFd);
 }
 
-void PlayerState::buildFromPlayer(Player& player)
-{
-	this->texture = player.getTexture();
-	this->totalPostures = player.getTotalPostures();
-	this->posture = player.getPosture();
-	this->mobility = player.getMobility();
-	this->pos_x = player.getPosX();
-	this->pos_y = player.getPosY();
-	this->angle = player.getAngle();
-}
-
-void PlayerState::buildPlayer(Player& player)
-{
-	player.setTexture(this->texture);
-	player.setTotalPostures(this->totalPostures);
-	player.setPosture(this->posture);
-	player.setMobility(this->mobility);
-	player.setPosX(this->pos_x);
-	player.setPosY(this->pos_y);
-	player.setAngle(this->angle);
-}
-
 Game::Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPlayerId)
 {
 	this->ip[0] = 0;
@@ -327,26 +303,16 @@ Game::Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPla
 	}
 
 	team1[0]->possess();
-	possessor = team1[0];
-
-	possessorPlayerTeam = 0;
-	possessorPlayerId = 0;
-
-	if(myPlayerTeam == 0 && myPlayerId == 0)
-		possession = true;
-	else
-		possession = false;
 
 	this->myPlayerTeam = myPlayerTeam;
 	this->myPlayerId = myPlayerId;
-
-	state->teamNo = myPlayerTeam;
-	state->playerId = myPlayerId;
 
 	if(myPlayerTeam == 0)
 		myPlayer = team1[myPlayerId];
 	else
 		myPlayer = team2[myPlayerId];
+
+	controlQ = new std::queue<Control>;
 
 	onlinePlayers = new OnlinePlayers();
 
@@ -372,24 +338,46 @@ void Game::startServer()
 	server.detach();
 }
 
-void Game::movePlayer(float angle)
+game_type Game::getType()
 {
-	myPlayer->setAngle(angle);
-	myPlayer->moveForward();
+	return type;
+}
 
-	if(possessorPlayerTeam != myPlayerTeam && !ball->isOnShoot())
+int Game::getMyPlayerTeam()
+{
+	return myPlayerTeam;
+}
+
+int Game::getMyPlayerId()
+{
+	return myPlayerId;
+}
+
+void Game::movePlayer(int playerTeam, int playerId, float angle)
+{
+	Player *player;
+
+	if(playerTeam == 0)
+		player = team1[playerId];
+	else
+		player = team2[playerId];
+
+	player->setAngle(angle);
+	player->moveForward();
+
+	if(possessorPlayerTeam() != playerTeam && !ball->isOnShoot())
 	{
-		float dx = myPlayer->getPosX() - ball->getPosX();
-		float dy = myPlayer->getPosY() - ball->getPosY();
+		float dx = player->getPosX() - ball->getPosX();
+		float dy = player->getPosY() - ball->getPosY();
 		float dist = sqrt(dx*dx + dy*dy);
 
 		if(dist < HIT_THRESHOLD)
 		{
-			possession = true;
-			myPlayer->possess();
-			possessor = myPlayer;
-			possessorPlayerTeam = myPlayerTeam;
-			possessorPlayerId = myPlayerId;
+			setBallFree();
+			player->possess();
+			//possessor = myPlayer;
+			//possessorPlayerTeam = myPlayerTeam;
+			//possessorPlayerId = myPlayerId;
 		}
 	}
 }
@@ -428,14 +416,14 @@ void Game::applyBallDeflection(float oldX, float oldY, float newX, float newY)
 
 			if(j == 0)
 			{
-				if(possessorPlayerTeam == 0 && possessorPlayerId == i)
+				if(possessorPlayerTeam() == 0 && possessorPlayerId() == i)
 					continue;
 				dx = newX - state->Team1[i].getPosX();
 				dy = newY - state->Team1[i].getPosY();
 			}
 			else
 			{
-				if(possessorPlayerTeam == 1 && possessorPlayerId == i)
+				if(possessorPlayerTeam() == 1 && possessorPlayerId() == i)
 					continue;
 				dx = newX - state->Team2[i].getPosX();
 				dy = newY - state->Team2[i].getPosY();
@@ -476,15 +464,63 @@ void Game::applyBallDeflection(float oldX, float oldY, float newX, float newY)
 	}
 }
 
-void Game::shoot()
+bool Game::isBallInPossession()
 {
-	if(possession && myPlayer == possessor)
-		myPlayer->shoot();
+	for(int i = 0; i < PLAYERS_PER_TEAM; i++)
+	{
+		if(team1[i]->InPossession())
+			return true;
+		if(team2[i]->InPossession())
+			return true;
+	}
+	return false;
+}
 
-	possession = false;
-	possessorPlayerTeam = -1;
-	possessorPlayerId = -1;
-	possessor = NULL;
+int Game::possessorPlayerTeam()
+{
+	for(int i = 0; i < PLAYERS_PER_TEAM; i++)
+	{
+		if(team1[i]->InPossession())
+			return 0;
+		if(team2[i]->InPossession())
+			return 1;
+	}
+	return -1;
+}
+
+int Game::possessorPlayerId()
+{
+	for(int i = 0; i < PLAYERS_PER_TEAM; i++)
+	{
+		if(team1[i]->InPossession())
+			return i;
+		if(team2[i]->InPossession())
+			return i;
+	}
+	return -1;
+}
+
+void Game::setBallFree()
+{
+	for(int i = 0; i < PLAYERS_PER_TEAM; i++)
+	{
+		if(team1[i]->InPossession())
+			team1[i]->release();
+		if(team1[i]->InPossession())
+			team2[i]->release();
+	}
+}
+
+void Game::shoot(int playerTeam, int playerId)
+{
+	Player *player;
+
+	if(playerTeam == 0)
+		player = team1[playerId];
+	else
+		player = team2[playerId];
+
+	player->shoot();
 }
 
 void Game::join(char *ip, int port)
@@ -499,69 +535,69 @@ void Game::join(char *ip, int port)
 	sendPacket(this, &packet, ip, port);
 	onlinePlayers->add(ip, port, 0, 0);
 
-	//std::unique_lock<std::mutex> lk(serverMutex);
-	//serverRunning.wait(lk);
-
-	std::thread stateSenderThread(stateSender, this, ip, port);
-	stateSenderThread.detach();
+	std::thread controlSenderThread(controlSender, this, ip, port);
+	controlSenderThread.detach();
 }
 
-void Game::sendState()
-{
-	/*Packet packet;
-	packet.type = STATE;
-	for(int i = 0; i < onlinePlayers->count; i++)
-	{
-		strcpy(packet.ip, this->ip);
-		packet.port = this->port;
-		//std::cout << onlinePlayers->playerDetails[i].ip << ":" << onlinePlayers->playerDetails[i].port << std::endl;
-		packet.state = *state;
-		sendPacket(this, &packet, onlinePlayers->playerDetails[i].ip, onlinePlayers->playerDetails[i].port, &clientSocket[i]);
-	}*/
-}
 
 void Game::applyState(State *state)
 {
 	stateMutex.lock();
-	if(type == JOINER)
+	int team = possessorPlayerTeam();
+	int id = possessorPlayerId();
+
+	*ball = state->ball;
+	this->state->ball = state->ball;
+
+	for(int i = 0; i < PLAYERS_PER_TEAM; i++)
 	{
-		//*(this->state) = *state;
-
-		*ball = state->ball;
-		this->state->ball = state->ball;
-
-		for(int i = 0; i < PLAYERS_PER_TEAM; i++)
-		{
-			if(this->state->teamNo != 0 || this->state->playerId != i)
-			{
-				*(team1[i]) = state->Team1[i];
-				this->state->Team1[i] = state->Team1[i];
-			}
-			if(this->state->teamNo != 1 || this->state->playerId != i)
-			{
-				*(team2[i]) = state->Team2[i];
-				this->state->Team2[i] = state->Team2[i];
-			}
-		}
-	}
-	else
-	{
-		//*ball = state->ball;
-		//this->state->ball = state->ball;
-
-		if(state->teamNo == 0)
-		{
-			*(team1[state->playerId]) = state->Team1[state->playerId];
-			this->state->Team1[state->playerId] = state->Team1[state->playerId];
-		}
-		else
-		{
-			*(team2[state->playerId]) = state->Team2[state->playerId];
-			this->state->Team2[state->playerId] = state->Team2[state->playerId];
-		}
+		*(team1[i]) = state->Team1[i];
+		*(team2[i]) = state->Team2[i];
 	}
 
 	stateMutex.unlock();
+}
+
+void Game::applyControl(Control control)
+{
+	switch(control.type)
+	{
+	case NONE:
+		break;
+
+	case MOVE:
+		movePlayer(control.teamNo, control.playerId, control.angle);
+		break;
+
+	case SHOOT:
+		shoot(control.teamNo, control.playerId);
+		break;
+	}
+}
+
+void Game::insertControl(Control control)
+{
+	queueMutex.lock();
+	controlQ->push(control);
+	queueMutex.unlock();
+}
+
+Control Game::removeControl()
+{
+	Control control;
+	control.type = NONE;
+	control.teamNo = myPlayerTeam;
+	control.playerId = myPlayerId;
+
+	queueMutex.lock();
+	if(controlQ->size() != 0)
+	{
+		control = controlQ->front();
+		controlQ->pop();
+	}
+	queueMutex.unlock();
+
+	return control;
 }
 
 void Game::draw()
