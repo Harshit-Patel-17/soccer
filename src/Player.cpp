@@ -148,24 +148,19 @@ void Player::positionGoalkeeper()
 	else
 	{
 		angle = 0;
-		posture = 0;
 		return;
 	}
 
-	static int stateCounter = 0;
-	if(++stateCounter != 2)
-		return;
-	stateCounter = 0;
 	posture = (posture + 2) % totalPostures;
 
 
 	pos_x = pos_x + mobility * cos(angle * 3.1415 / 180);
 	pos_y = pos_y + mobility * sin(angle * 3.1415 / 180);
 
-	if(pos_y > ground->getGroundHeight()/2.0 + 25.0)
-		pos_y = ground->getGroundHeight()/2.0 + 25.0;
-	if(pos_y < ground->getGroundHeight()/2.0 - 25.0)
-			pos_y = ground->getGroundHeight()/2.0 - 25.0;
+	if(pos_y > GK_MAX_Y)
+		pos_y = GK_MAX_Y;
+	if(pos_y < GK_MIN_Y)
+			pos_y = GK_MIN_Y;
 }
 
 void Player::shoot()
@@ -174,6 +169,27 @@ void Player::shoot()
 		return;
 	ball->hit(8.0, -0.3, angle);
 	possession = false;
+}
+
+void Player::pass(int playerTeam, int playerId, Player *destPlayer, int destPlayerId, pair<float,float> dest, pair<float,float> src)
+{
+	if(possession == false)
+		return;
+
+	ball->setIsPass(true);
+	float dist = sqrt((src.first - dest.first)*(src.first - dest.first)
+			+ (src.second - dest.second)*(src.second - dest.second));
+
+	float u = 8.0;
+	float accn = -1.0*((u*u)/(2.0*dist));
+
+	float angle = atan((src.second - dest.second)/(src.first - dest.first));
+	if((dest.first - src.first) < 0.0)
+		angle += 3.1415;
+
+	ball->hit(u, accn, (angle*180.0)/3.1415);
+	possession = false;
+
 }
 
 int Player::getTexture()

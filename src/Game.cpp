@@ -14,6 +14,9 @@
 #include <condition_variable>
 #include <chrono>
 #include <math.h>
+#include <iostream>
+
+using namespace std;
 
 std::mutex stateMutex;
 std::mutex queueMutex;
@@ -383,9 +386,6 @@ void Game::movePlayer(int playerTeam, int playerId, float angle)
 	player->setAngle(angle);
 	player->moveForward();
 
-	team1[2]->positionGoalkeeper();
-	team2[2]->positionGoalkeeper();
-
 
 	if(possessorPlayerTeam() != playerTeam && !ball->isOnShoot())
 	{
@@ -425,10 +425,21 @@ void Game::moveBall()
 	float newY = oldY + v * dy_unit;
 
 	ball->updatePosition();
-	applyBallDeflection(oldX, oldY, newX, newY);
-
-	team1[2]->positionGoalkeeper();
-	team2[2]->positionGoalkeeper();
+	if(!(ball->isBallPassed()))
+		applyBallDeflection(oldX, oldY, newX, newY);
+	if(fabs(dy_unit) >= Y_CHANGE_THRESHOLD
+			&& newY > GK_MIN_Y && newY < GK_MAX_Y)
+	{
+		team2[2]->positionGoalkeeper();
+		team1[2]->positionGoalkeeper();
+	}
+	else
+	{
+		team1[2]->setPosture(0);
+		team2[2]->setPosture(0);
+		team1[2]->setAngle(180);
+		team2[2]->setAngle(180);
+	}
 }
 
 void Game::applyBallDeflection(float oldX, float oldY, float newX, float newY)
@@ -545,7 +556,30 @@ void Game::shoot(int playerTeam, int playerId)
 	else
 		player = team2[playerId];
 
+	ball->setIsPass(false);
+
 	player->shoot();
+}
+
+void Game::pass(int playerTeam, int playerId)
+{
+	Player *player, *destPlayer;
+
+	if(playerTeam == 0)
+	{
+		player = team1[playerId];
+		destPlayer = team1[1-playerId]; //change logic if pass needs to be made to the goalkeeper
+	}
+	else
+	{
+		player = team2[playerId];
+		destPlayer = team2[1-playerId]; //change logic if pass needs to be made to the goalkeeper
+	}
+
+	pair<float, float> dest = make_pair(destPlayer->getPosX(),destPlayer->getPosY());
+	pair<float, float> src = make_pair(ball->getPosX(), ball->getPosY());
+
+	player->pass(playerTeam, playerId, destPlayer, 1-playerId, dest, src);
 }
 
 int Game::getTeam1Goals()
@@ -606,6 +640,10 @@ void Game::applyControl(Control control)
 
 	case SHOOT:
 		shoot(control.teamNo, control.playerId);
+		break;
+
+	case PASS:
+		pass(control.teamNo, control.playerId);
 		break;
 	}
 }

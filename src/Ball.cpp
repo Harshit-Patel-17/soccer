@@ -48,6 +48,7 @@ Ball::Ball(float pos_x, float pos_y, float angle, Soccer *soccer, Ground *ground
 	this->onShoot = false;
 	this->position = 0;
 	this->totalPositions = soccer->getTotalBallPositions();
+	this->isPass = false;
 	this->ground = ground;
 	this->soccer = soccer;
 	this->pos_x = pos_x;
@@ -198,4 +199,14 @@ float Ball::getAngle()
 void Ball::setAngle(float angle)
 {
 	this->angle = angle;
+}
+
+void Ball::setIsPass(bool isPass)
+{
+	this->isPass = isPass;
+}
+
+bool Ball::isBallPassed()
+{
+	return isPass;
 }
