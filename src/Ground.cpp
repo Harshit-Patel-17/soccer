@@ -57,3 +57,13 @@ void Ground::draw()
 	glEnd();
 }
 
+float Ground::getGroundHeight()
+{
+	return height;
+}
+
+float Ground::getGroundWidth()
+{
+	return width;
+}
+

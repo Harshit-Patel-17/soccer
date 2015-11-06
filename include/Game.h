@@ -101,6 +101,8 @@ class Game
 	Ball *ball;
 	Player *team1[PLAYERS_PER_TEAM];
 	Player *team2[PLAYERS_PER_TEAM];
+	int team1Goals;
+	int team2Goals;
 	Player *myPlayer;
 	int myPlayerTeam;
 	int myPlayerId;
@@ -132,6 +134,8 @@ public:
 	void insertControl(Control control);
 	Control removeControl();
 	void draw();
+	int getTeam1Goals();
+	int getTeam2Goals();
 
 	friend void serverRunner(Game *game);
 	friend bool sendPacket(Game *game, Packet *packet, char *destIp, int destPort);
