@@ -235,7 +235,7 @@ void Player::draw()
 	int width = 88 / 5;
 	int height = 98 / 5;
 
-	applyRotation(angle - 90, pos_x, pos_y);
+	applyRotation(angle + 90, pos_x, pos_y);
 	glBegin(GL_QUADS);
 		glTexCoord2f(0, 0); glVertex3f(pos_x - width/2, pos_y - height/2, 0);
 		glTexCoord2f(1, 0); glVertex3f(pos_x + width/2, pos_y - height/2, 0);

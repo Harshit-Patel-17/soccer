@@ -296,7 +296,7 @@ Game::Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPla
 			team1[i] = new Player(0, 2, GROUND_WIDTH/2 + 10, GROUND_HEIGHT/2, 0, soccer, ground, ball);
 		else
 			team1[i] = new Player(0, 2, GROUND_WIDTH/2, GROUND_HEIGHT/2, 0, soccer, ground, ball);
-		team2[i] = new Player(0, 2, GROUND_WIDTH/2, GROUND_HEIGHT/2, 0, soccer, ground, ball);
+		team2[i] = new Player(1, 2, GROUND_WIDTH/2, GROUND_HEIGHT/2, 0, soccer, ground, ball);
 
 		state->Team1[i] = *(team1[i]);
 		state->Team2[i] = *(team2[i]);

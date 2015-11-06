@@ -13,6 +13,7 @@
 #include <SDL/SDL_endian.h>
 #include <GL/gl.h>
 #include <GL/glut.h>
+#include <SOIL/SOIL.h>
 #include <string>
 
 #define PLAYER_TEX 2

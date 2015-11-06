@@ -8,7 +8,7 @@
 #include "../include/Soccer.h"
 #include <iostream>
 
-static const int playerTexSample[PLAYER_TEX] = {39, 14};
+static const int playerTexSample[PLAYER_TEX] = {39, 39};
 static const int ballTexSample = 10;
 
 Soccer::Soccer()
@@ -21,7 +21,14 @@ Soccer::Soccer()
 		for(int j = 0; j < playerTexSample[i]; j++)
 		{
 			std::string filePath = "../res/player" + std::to_string(i+1) + "/" + std::to_string(j+1) + ".png";
-			playerSprite = IMG_Load(filePath.c_str());
+			playerTex[i][j] = SOIL_load_OGL_texture // load an image file directly as a new OpenGL texture
+			(
+				filePath.c_str(),
+				SOIL_LOAD_AUTO,
+				SOIL_CREATE_NEW_ID,
+				SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
+			);
+			/*playerSprite = IMG_Load(filePath.c_str());
 			if(playerSprite == NULL)
 				std::cerr << "Error loading image '" << filePath << "'" << std::endl;
 
@@ -50,7 +57,7 @@ Soccer::Soccer()
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-			SDL_FreeSurface(playerSprite);
+			SDL_FreeSurface(playerSprite);*/
 		}
 	}
 
@@ -60,7 +67,14 @@ Soccer::Soccer()
 	for(int j = 0; j < ballTexSample; j++)
 	{
 		std::string filePath = "../res/Ball/" + std::to_string(j+1) + ".png";
-		ballSprite = IMG_Load(filePath.c_str());
+		ballTex[j] = SOIL_load_OGL_texture // load an image file directly as a new OpenGL texture
+		(
+			filePath.c_str(),
+			SOIL_LOAD_AUTO,
+			SOIL_CREATE_NEW_ID,
+			SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
+		);
+		/*ballSprite = IMG_Load(filePath.c_str());
 		if(ballSprite == NULL)
 			std::cerr << "Error loading image '" << filePath << "'" << std::endl;
 
@@ -89,7 +103,7 @@ Soccer::Soccer()
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		SDL_FreeSurface(ballSprite);
+		SDL_FreeSurface(ballSprite);*/
 	}
 
 	//Load ground texture
@@ -97,7 +111,14 @@ Soccer::Soccer()
 	for(int j = 0; j < ballTexSample; j++)
 	{
 		std::string filePath = "../res/ground/1.jpg";
-		groundSprite = IMG_Load(filePath.c_str());
+		groundTex = SOIL_load_OGL_texture // load an image file directly as a new OpenGL texture
+		(
+			filePath.c_str(),
+			SOIL_LOAD_AUTO,
+			SOIL_CREATE_NEW_ID,
+			SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
+		);
+		/*groundSprite = IMG_Load(filePath.c_str());
 		if(groundSprite == NULL)
 			std::cerr << "Error loading image '" << filePath << "'" << std::endl;
 
@@ -126,7 +147,7 @@ Soccer::Soccer()
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		SDL_FreeSurface(groundSprite);
+		SDL_FreeSurface(groundSprite);*/
 	}
 }
 
