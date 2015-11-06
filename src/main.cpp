@@ -49,21 +49,29 @@ void handleSpecialUpInput(int key,int x,int y)
 
 void handleSpecialInput(int key, int x, int y)
 {
+	Control control;
+	control.type = MOVE;
+	control.playerId = game->getMyPlayerId();
+	control.teamNo = game->getMyPlayerTeam();
+
     switch(key)
     {
         case GLUT_KEY_RIGHT:
         	keysPressed[0] = true;
         	if(keysPressed[2])
         	{
-        		game->movePlayer(45);
+        		control.angle = 45;
+        		//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 45);
         	}
         	else if(keysPressed[3])
         	{
-        		game->movePlayer(315);
+        		control.angle = 315;
+        		//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 315);
         	}
         	else
         	{
-        		game->movePlayer(0);
+        		control.angle = 0;
+        		//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 0);
         	}
             break;
 
@@ -71,15 +79,18 @@ void handleSpecialInput(int key, int x, int y)
         	keysPressed[1] = true;
         	if(keysPressed[2])
 			{
-        		game->movePlayer(135);
+        		control.angle = 135;
+        		//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 135);
 			}
 			else if(keysPressed[3])
 			{
-				game->movePlayer(225);
+				control.angle = 225;
+				//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 225);
 			}
 			else
 			{
-				game->movePlayer(180);
+				control.angle = 180;
+				//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 180);
 			}
             break;
 
@@ -87,15 +98,18 @@ void handleSpecialInput(int key, int x, int y)
         	keysPressed[2] = true;
         	if(keysPressed[0])
 			{
-        		game->movePlayer(45);
+        		control.angle = 45;
+        		//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 45);
 			}
 			else if(keysPressed[1])
 			{
-				game->movePlayer(135);
+				control.angle = 135;
+				//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 135);
 			}
 			else
 			{
-				game->movePlayer(90);
+				control.angle = 90;
+				//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 90);
 			}
             break;
 
@@ -103,20 +117,25 @@ void handleSpecialInput(int key, int x, int y)
         	keysPressed[3] = true;
         	if(keysPressed[0])
 			{
-        		game->movePlayer(315);
+        		control.angle = 315;
+        		//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 315);
 			}
 			else if(keysPressed[1])
 			{
-				game->movePlayer(225);
+				control.angle = 225;
+				//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 225);
 			}
 			else
 			{
-				game->movePlayer(270);
+				control.angle = 270;
+				//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 270);
 			}
             break;
     }
-
-
+    if(game->getType() == CREATOR)
+    	game->movePlayer(control.teamNo, control.playerId, control.angle);
+    else
+    	game->insertControl(control);
 }
 
 void handleKeyUp(unsigned char key, int x, int y)
@@ -131,7 +150,7 @@ void handleKeyUp(unsigned char key, int x, int y)
 			float initial_velocity = cpu_time_used + 5.0;
 			printf("Key up %c",key);
 			printf("%f ",initial_velocity);
-			game->shoot(8.0);
+			//game->shoot(8.0);
 			isShootKeyPressed = false;
 		}
 		break;
@@ -140,20 +159,22 @@ void handleKeyUp(unsigned char key, int x, int y)
 
 void handleKeyPress(unsigned char key, int x, int y)
 {
+	Control control;
+	control.playerId = game->getMyPlayerId();
+	control.teamNo = game->getMyPlayerTeam();
+
 	switch(key)
 	{
         case 27:
             exit(0);
             break;
 
-        case 's':
-        	//game->shoot();
-        	if(!isShootKeyPressed)
-        	{
-        		printf("Key down %c",key);
-        		isShootKeyPressed = true;
-        		shootPressStart = clock();
-        	}
+        case 32:
+        	control.type = SHOOT;
+        	if(game->getType() == CREATOR)
+        		game->shoot(game->getMyPlayerTeam(), game->getMyPlayerId());
+			else
+				game->insertControl(control);
         	break;
 	}
 }
@@ -271,7 +292,10 @@ int main(int argc, char *argv[])
     }
     else if(argc == 3)
     {
-    	game = new Game("127.0.0.1", atoi(argv[1]), JOINER, 0, 1);
+    	int teamNo, playerId;
+    	std::cin >> teamNo;
+    	std::cin >> playerId;
+    	game = new Game("127.0.0.1", atoi(argv[1]), JOINER, teamNo, playerId);
     	game->startServer();
     	game->join("127.0.0.1", atoi(argv[2]));
     }

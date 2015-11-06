@@ -38,7 +38,7 @@ public:
 
 	void moveForward();
 	void positionGoalkeeper();
-	void shoot(float initial_velocity);
+	void shoot();
 	int getTexture();
 	void setTexture(int texture);
 	int getTotalPostures();
@@ -54,6 +54,8 @@ public:
 	float getPosY();
 	void setPosY(float pos_x);
 	void possess();
+	void release();
+	bool InPossession();
 	void draw();
 
 	void operator=(Player& player);

@@ -168,11 +168,11 @@ void Player::positionGoalkeeper()
 			pos_y = ground->getGroundHeight()/2.0 - 25.0;
 }
 
-void Player::shoot(float initial_velocity)
+void Player::shoot()
 {
-	if(ball == NULL)
+	if(possession == false)
 		return;
-	ball->hit(initial_velocity, -0.3, angle);
+	ball->hit(8.0, -0.3, angle);
 	possession = false;
 }
 
@@ -251,6 +251,16 @@ void Player::possess()
 	this->possession = true;
 }
 
+void Player::release()
+{
+	this->possession = false;
+}
+
+bool Player::InPossession()
+{
+	return possession;
+}
+
 void Player::draw()
 {
 	glBindTexture(GL_TEXTURE_2D, soccer->getPlayerTex(texture)[posture]);
@@ -277,4 +287,5 @@ void Player::operator=(Player& player)
 	this->pos_x = player.pos_x;
 	this->pos_y = player.pos_y;
 	this->angle = player.angle;
+	this->possession = player.possession;
 }
