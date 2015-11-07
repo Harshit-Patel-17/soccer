@@ -14,6 +14,7 @@
 #include <condition_variable>
 #include <chrono>
 #include <math.h>
+#include <float.h>
 #include <iostream>
 
 using namespace std;
@@ -387,7 +388,7 @@ void Game::movePlayer(int playerTeam, int playerId, float angle)
 	player->moveForward();
 
 
-	if(possessorPlayerTeam() != playerTeam && !ball->isOnShoot())
+	if((possessorPlayerTeam() != playerTeam && !ball->isOnShoot()) || (playerId == 2))
 	{
 		float dx = player->getPosX() - ball->getPosX();
 		float dy = player->getPosY() - ball->getPosY();
@@ -406,6 +407,21 @@ void Game::movePlayer(int playerTeam, int playerId, float angle)
 
 void Game::moveBall()
 {
+	int playerTeam, playerId;
+
+	// if goalkeeper is in possession,he should pass
+	if(team1[2]->InPossession() || team2[2]->InPossession())
+	{
+		if(team1[2]->InPossession())
+			playerTeam = 0;
+		else
+			playerTeam = 1;
+
+		playerId = 2; //change logic,compute minimum distance
+		sleep(2);
+
+		pass(playerTeam, playerId);
+	}
 	float u = ball->getU();
 	float a = ball->getA();
 	float d = ball->getD();
@@ -425,6 +441,32 @@ void Game::moveBall()
 	float newY = oldY + v * dy_unit;
 
 	ball->updatePosition();
+
+	// if within the threshold,goalkeeper should take claim of the ball
+	for(int i=0;i<2;i++)
+	{
+		Player *player;
+
+		if(i==0)
+			player = team1[2];
+		else
+			player = team2[2];
+
+		float dx = player->getPosX() - ball->getPosX();
+		float dy = player->getPosY() - ball->getPosY();
+		float dist = sqrt(dx*dx + dy*dy);
+
+		if(dist < GK_CLAIM_THRESHOLD && !ball->isBallPassed())
+		{
+			setBallFree();
+			player->possess();
+			ball->setPosX(player->getPosX());
+			ball->setPosY(player->getPosY());
+			ball->setAccn(DBL_MIN);
+			return;
+		}
+	}
+
 	if(!(ball->isBallPassed()))
 		applyBallDeflection(oldX, oldY, newX, newY);
 	if(fabs(dy_unit) >= Y_CHANGE_THRESHOLD
@@ -564,22 +606,41 @@ void Game::shoot(int playerTeam, int playerId)
 void Game::pass(int playerTeam, int playerId)
 {
 	Player *player, *destPlayer;
+	int destPlayerId;
 
 	if(playerTeam == 0)
 	{
 		player = team1[playerId];
-		destPlayer = team1[1-playerId]; //change logic if pass needs to be made to the goalkeeper
+		if(playerId == 2)
+		{
+			destPlayerId = 0;
+			destPlayer = team1[destPlayerId];
+		}
+		else
+		{
+			destPlayerId = 1-playerId;
+			destPlayer = team1[destPlayerId]; //change logic if pass needs to be made to the goalkeeper
+		}
 	}
 	else
 	{
 		player = team2[playerId];
-		destPlayer = team2[1-playerId]; //change logic if pass needs to be made to the goalkeeper
+		if(playerId == 2)
+		{
+			destPlayerId = 0;
+			destPlayer = team2[destPlayerId];
+		}
+		else
+		{
+			destPlayerId = 1-playerId;
+			destPlayer = team2[destPlayerId]; //change logic if pass needs to be made to the goalkeeper
+		}
 	}
 
 	pair<float, float> dest = make_pair(destPlayer->getPosX(),destPlayer->getPosY());
 	pair<float, float> src = make_pair(ball->getPosX(), ball->getPosY());
 
-	player->pass(playerTeam, playerId, destPlayer, 1-playerId, dest, src);
+	player->pass(playerTeam, playerId, destPlayer, destPlayerId, dest, src);
 }
 
 int Game::getTeam1Goals()

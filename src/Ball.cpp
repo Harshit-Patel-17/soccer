@@ -210,3 +210,8 @@ bool Ball::isBallPassed()
 {
 	return isPass;
 }
+
+void Ball::setAccn(float a)
+{
+	this->a = a;
+}

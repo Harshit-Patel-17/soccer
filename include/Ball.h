@@ -42,6 +42,7 @@ public:
 	void setPosX(float pos_x);
 	float getPosY();
 	void setPosY(float pos_y);
+	void setAccn(float a);
 	void setPosition(float x, float y);
 	float getAngle();
 	void setAngle(float angle);
