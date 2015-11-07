@@ -33,8 +33,6 @@ void handleJoystickInput(unsigned int buttomMask, int xaxis, int yaxis, int zaxi
 	control.playerId = game->getMyPlayerId();
 	control.teamNo = game->getMyPlayerTeam();
 
-	std::cout << xaxis << " " << yaxis << " " << zaxis << std::endl;
-
 	control.type = MOVE;
 	if(xaxis > JOYSTICK_THRESHOLD || xaxis < -JOYSTICK_THRESHOLD)
 	{
@@ -45,7 +43,6 @@ void handleJoystickInput(unsigned int buttomMask, int xaxis, int yaxis, int zaxi
 			game->movePlayer(control.teamNo, control.playerId, control.angle);
 		else
 			game->insertControl(control);
-		return;
 	}
 	else
 	{
@@ -60,7 +57,6 @@ void handleJoystickInput(unsigned int buttomMask, int xaxis, int yaxis, int zaxi
 					game->movePlayer(control.teamNo, control.playerId, control.angle);
 				else
 					game->insertControl(control);
-				return;
 			}
 			else
 			{
@@ -71,60 +67,35 @@ void handleJoystickInput(unsigned int buttomMask, int xaxis, int yaxis, int zaxi
 					game->movePlayer(control.teamNo, control.playerId, control.angle);
 				else
 					game->insertControl(control);
-				return;
 			}
 		}
-		else
-		{
-			return;
-		}
 	}
 
-	if(xaxis > JOYSTICK_THRESHOLD)
+	switch(buttomMask)
 	{
-		if(yaxis > JOYSTICK_THRESHOLD)
-		{
+		case GLUT_JOYSTICK_BUTTON_A:
+			//std::cout << "A" << std::endl;
+			break;
 
-		}
-		else if(yaxis < -JOYSTICK_THRESHOLD)
-		{
+		case GLUT_JOYSTICK_BUTTON_B:
+			control.type = SHOOT;
+			if(game->getType() == CREATOR)
+				game->shoot(game->getMyPlayerTeam(), game->getMyPlayerId());
+			else
+				game->insertControl(control);
+			break;
 
-		}
-		else
-		{
+		case GLUT_JOYSTICK_BUTTON_C:
+			control.type = PASS;
+			if(game->getType() == CREATOR)
+				game->pass(game->getMyPlayerTeam(), game->getMyPlayerId());
+			else
+				game->insertControl(control);
+			break;
 
-		}
-	}
-	else if(xaxis < -JOYSTICK_THRESHOLD)
-	{
-		if(yaxis > JOYSTICK_THRESHOLD)
-		{
-
-		}
-		else if(yaxis < -JOYSTICK_THRESHOLD)
-		{
-
-		}
-		else
-		{
-
-		}
-	}
-	else
-	{
-		if(yaxis > JOYSTICK_THRESHOLD)
-		{
-
-		}
-		else if(yaxis < -JOYSTICK_THRESHOLD)
-		{
-
-		}
-		else
-		{
-
-		}
-
+		case GLUT_JOYSTICK_BUTTON_D:
+			//std::cout << "D" << std::endl;
+			break;
 	}
 }
 
