@@ -310,12 +310,12 @@ Game::Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPla
 		else if(i==0)
 		{
 			team1[i] = new Player(0, 2, GROUND_WIDTH/2, GROUND_HEIGHT/2, 0, soccer, ground, ball); // kickOff team player 1
-			team2[i] = new Player(0, 2, GROUND_WIDTH/2 + 20.0, GROUND_HEIGHT/2, 0, soccer, ground, ball);
+			team2[i] = new Player(1, 2, GROUND_WIDTH/2 + 20.0, GROUND_HEIGHT/2, 0, soccer, ground, ball);
 		}
 		else
 		{
 			team1[i] = new Player(0, 2, (GROUND_WIDTH/2) - 20.0, GROUND_HEIGHT/2 - 50.0, 0, soccer, ground, ball); // kickOff team player 2
-			team2[i] = new Player(0, 2, GROUND_WIDTH/2 + 20.0, GROUND_HEIGHT/2 - 50.0, 0, soccer, ground, ball);
+			team2[i] = new Player(1, 2, GROUND_WIDTH/2 + 20.0, GROUND_HEIGHT/2 - 50.0, 0, soccer, ground, ball);
 		}
 
 		state->Team1[i] = *(team1[i]);
@@ -749,6 +749,8 @@ void Game::draw()
 
 	moveBall();
 	ball->draw();
+
+	ground->drawGoals();
 
 	stateMutex.lock();
 	state->ball = *ball;

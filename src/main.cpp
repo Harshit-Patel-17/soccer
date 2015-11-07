@@ -16,6 +16,7 @@ using namespace std;
 
 #define SCREEN_WIDTH 1024*2
 #define SCREEN_HEIGHT 768*2
+#define JOYSTICK_THRESHOLD 200
 #define TIMER 50
 
 Game *game;
@@ -24,6 +25,79 @@ bool keysPressed[4];
 clock_t shootPressStart,shootPressEnd;
 bool isShootKeyPressed = false;
 clock_t startTime,endTime;
+
+
+void handleJoystickInput(unsigned int buttomMask, int xaxis, int yaxis, int zaxis)
+{
+	Control control;
+	control.playerId = game->getMyPlayerId();
+	control.teamNo = game->getMyPlayerTeam();
+
+	control.type = MOVE;
+	if(xaxis > JOYSTICK_THRESHOLD || xaxis < -JOYSTICK_THRESHOLD)
+	{
+		control.angle = atan(-yaxis / xaxis) * 180 / 3.1415;
+		if(xaxis < 0)
+			control.angle += 180;
+		if(game->getType() == CREATOR)
+			game->movePlayer(control.teamNo, control.playerId, control.angle);
+		else
+			game->insertControl(control);
+	}
+	else
+	{
+		if(yaxis > JOYSTICK_THRESHOLD || yaxis < -JOYSTICK_THRESHOLD)
+		{
+			if(xaxis == 0)
+			{
+				control.angle = 90;
+				if(yaxis > 0)
+					control.angle += 180;
+				if(game->getType() == CREATOR)
+					game->movePlayer(control.teamNo, control.playerId, control.angle);
+				else
+					game->insertControl(control);
+			}
+			else
+			{
+				control.angle = atan(-yaxis / xaxis) * 180 / 3.1415;
+				if(xaxis < 0)
+					control.angle += 180;
+				if(game->getType() == CREATOR)
+					game->movePlayer(control.teamNo, control.playerId, control.angle);
+				else
+					game->insertControl(control);
+			}
+		}
+	}
+
+	switch(buttomMask)
+	{
+		case GLUT_JOYSTICK_BUTTON_A:
+			//std::cout << "A" << std::endl;
+			break;
+
+		case GLUT_JOYSTICK_BUTTON_B:
+			control.type = SHOOT;
+			if(game->getType() == CREATOR)
+				game->shoot(game->getMyPlayerTeam(), game->getMyPlayerId());
+			else
+				game->insertControl(control);
+			break;
+
+		case GLUT_JOYSTICK_BUTTON_C:
+			control.type = PASS;
+			if(game->getType() == CREATOR)
+				game->pass(game->getMyPlayerTeam(), game->getMyPlayerId());
+			else
+				game->insertControl(control);
+			break;
+
+		case GLUT_JOYSTICK_BUTTON_D:
+			//std::cout << "D" << std::endl;
+			break;
+	}
+}
 
 void handleSpecialUpInput(int key,int x,int y)
 {
@@ -284,6 +358,7 @@ int main(int argc, char *argv[])
 	glutKeyboardUpFunc(handleKeyUp);
 	glutSpecialFunc(handleSpecialInput);
 	glutSpecialUpFunc(handleSpecialUpInput);
+	glutJoystickFunc(handleJoystickInput, 25);
 	glutReshapeFunc(handleResize);
     glutTimerFunc(TIMER, update, 0);
 

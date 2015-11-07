@@ -123,10 +123,22 @@ void Player::moveForward()
 	}
 
 	if(pos_x > maxX)
-		pos_x = maxX;
+	{
+		if(pos_y < ground->getGoalPosY() - ground->getGoalWidth()/2 || pos_y > ground->getGoalPosY() + ground->getGoalWidth()/2)
+			pos_x = maxX;
+		else
+			if(pos_x > maxX + ground->getGoalDepth())
+				pos_x = maxX + ground->getGoalDepth();
+	}
 
 	if(pos_x < minX)
-		pos_x = minX;
+	{
+		if(pos_y < ground->getGoalPosY() - ground->getGoalWidth()/2 || pos_y > ground->getGoalPosY() + ground->getGoalWidth()/2)
+				pos_x = minX;
+		else
+			if(pos_x < minX - ground->getGoalDepth())
+				pos_x = minX - ground->getGoalDepth();
+	}
 
 	if(pos_y > maxY)
 		pos_y = maxY;
@@ -284,7 +296,7 @@ void Player::draw()
 	int width = 88 / 5;
 	int height = 98 / 5;
 
-	applyRotation(angle - 90, pos_x, pos_y);
+	applyRotation(angle + 90, pos_x, pos_y);
 	glBegin(GL_QUADS);
 		glTexCoord2f(0, 0); glVertex3f(pos_x - width/2, pos_y - height/2, 0);
 		glTexCoord2f(1, 0); glVertex3f(pos_x + width/2, pos_y - height/2, 0);
