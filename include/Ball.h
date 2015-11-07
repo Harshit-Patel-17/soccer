@@ -10,11 +10,15 @@
 
 #include "../include/Soccer.h"
 #include "../include/Ground.h"
+#include <iostream>
+
+using namespace std;
 
 class Ball {
 	bool onShoot;
 	int position;
 	int totalPositions;
+	bool isPass;
 	float pos_x;
 	float pos_y;
 	float angle;
@@ -45,6 +49,8 @@ public:
 	float getU();
 	float getA();
 	float getD();
+	void setIsPass(bool isPass);
+	bool isBallPassed();
 
 	void operator=(Ball& ball);
 };

@@ -72,7 +72,7 @@ struct State
 
 enum packet_type {CONNECT, STATE, CONTROL};
 enum game_type {CREATOR, JOINER};
-enum control_type {MOVE, SHOOT, NONE};
+enum control_type {MOVE, SHOOT, PASS, NONE};
 
 struct Control
 {
@@ -128,6 +128,7 @@ public:
 	int possessorPlayerId();
 	void setBallFree(); //No possession by any player
 	void shoot(int playerTeam, int playerId);
+	void pass(int playerTeam, int playerId);
 	void join(char *ip, int port);
 	void applyState(State *state);
 	void applyControl(Control control);

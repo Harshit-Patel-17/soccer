@@ -11,8 +11,14 @@
 #include "../include/Soccer.h"
 #include "../include/Ball.h"
 #include "../include/Ground.h"
+#include <iostream>
+
+using namespace std;
 
 #define HIT_THRESHOLD 5
+#define Y_CHANGE_THRESHOLD 0.005
+#define GK_MIN_Y 83
+#define GK_MAX_Y 133
 
 class Player
 {
@@ -39,6 +45,7 @@ public:
 	void moveForward();
 	void positionGoalkeeper();
 	void shoot();
+	void pass(int playerTeam, int playerId, Player *destPlayer, int destPlayerId, pair<float, float> dest, pair<float, float> src);
 	int getTexture();
 	void setTexture(int texture);
 	int getTotalPostures();

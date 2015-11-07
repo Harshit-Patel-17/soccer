@@ -279,6 +279,14 @@ void handleKeyPress(unsigned char key, int x, int y)
 			else
 				game->insertControl(control);
         	break;
+
+        case 's':
+        	control.type = PASS;
+        	if(game->getType() == CREATOR)
+        		game->pass(game->getMyPlayerTeam(), game->getMyPlayerId());
+        	else
+        		game->insertControl(control);
+        	break;
 	}
 }
 
