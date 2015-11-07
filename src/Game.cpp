@@ -689,6 +689,8 @@ void Game::draw()
 	moveBall();
 	ball->draw();
 
+	ground->drawGoals();
+
 	stateMutex.lock();
 	state->ball = *ball;
 

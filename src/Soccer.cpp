@@ -14,7 +14,6 @@ static const int ballTexSample = 10;
 Soccer::Soccer()
 {
 	//Load player textures
-	SDL_Surface *playerSprite;
 	for(int i = 0; i < PLAYER_TEX; i++)
 	{
 		playerTex[i] = new GLuint[playerTexSample[i]];
@@ -28,41 +27,10 @@ Soccer::Soccer()
 				SOIL_CREATE_NEW_ID,
 				SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
 			);
-			/*playerSprite = IMG_Load(filePath.c_str());
-			if(playerSprite == NULL)
-				std::cerr << "Error loading image '" << filePath << "'" << std::endl;
-
-			glGenTextures(1, &playerTex[i][j]);
-			glBindTexture(GL_TEXTURE_2D, playerTex[i][j]);
-
-			int mode;
-
-			switch (playerSprite->format->BytesPerPixel) {
-				case 4:
-					if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
-						mode = GL_BGRA;
-					else
-						mode = GL_RGBA;
-					break;
-
-				case 3:
-					if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
-						mode = GL_BGR;
-					else
-						mode = GL_RGB;
-					break;
-			}
-
-			glTexImage2D(GL_TEXTURE_2D, 0, mode, playerSprite->w, playerSprite->h, 0, mode, GL_UNSIGNED_BYTE, playerSprite->pixels);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-			SDL_FreeSurface(playerSprite);*/
 		}
 	}
 
 	//Load ball textures
-	SDL_Surface *ballSprite;
 	ballTex = new GLuint[ballTexSample];
 	for(int j = 0; j < ballTexSample; j++)
 	{
@@ -74,41 +42,9 @@ Soccer::Soccer()
 			SOIL_CREATE_NEW_ID,
 			SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
 		);
-		/*ballSprite = IMG_Load(filePath.c_str());
-		if(ballSprite == NULL)
-			std::cerr << "Error loading image '" << filePath << "'" << std::endl;
-
-		glGenTextures(1, &ballTex[j]);
-		glBindTexture(GL_TEXTURE_2D, ballTex[j]);
-
-		int mode;
-
-		switch (ballSprite->format->BytesPerPixel) {
-			case 4:
-				if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
-					mode = GL_BGRA;
-				else
-					mode = GL_RGBA;
-				break;
-
-			case 3:
-				if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
-					mode = GL_BGR;
-				else
-					mode = GL_RGB;
-				break;
-		}
-
-		glTexImage2D(GL_TEXTURE_2D, 0, mode, ballSprite->w, ballSprite->h, 0, mode, GL_UNSIGNED_BYTE, ballSprite->pixels);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		SDL_FreeSurface(ballSprite);*/
 	}
 
 	//Load ground texture
-	SDL_Surface *groundSprite;
-	for(int j = 0; j < ballTexSample; j++)
 	{
 		std::string filePath = "../res/ground/1.jpg";
 		groundTex = SOIL_load_OGL_texture // load an image file directly as a new OpenGL texture
@@ -118,36 +54,18 @@ Soccer::Soccer()
 			SOIL_CREATE_NEW_ID,
 			SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
 		);
-		/*groundSprite = IMG_Load(filePath.c_str());
-		if(groundSprite == NULL)
-			std::cerr << "Error loading image '" << filePath << "'" << std::endl;
+	}
 
-		glGenTextures(1, &groundTex);
-		glBindTexture(GL_TEXTURE_2D, groundTex);
-
-		int mode;
-
-		switch (groundSprite->format->BytesPerPixel) {
-			case 4:
-				if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
-					mode = GL_BGRA;
-				else
-					mode = GL_RGBA;
-				break;
-
-			case 3:
-				if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
-					mode = GL_BGR;
-				else
-					mode = GL_RGB;
-				break;
-		}
-
-		glTexImage2D(GL_TEXTURE_2D, 0, mode, groundSprite->w, groundSprite->h, 0, mode, GL_UNSIGNED_BYTE, groundSprite->pixels);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		SDL_FreeSurface(groundSprite);*/
+	//Load goal texture
+	{
+		std::string filePath = "../res/goal/1.png";
+		goalTex = SOIL_load_OGL_texture // load an image file directly as a new OpenGL texture
+		(
+			filePath.c_str(),
+			SOIL_LOAD_AUTO,
+			SOIL_CREATE_NEW_ID,
+			SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
+		);
 	}
 }
 
@@ -188,4 +106,9 @@ int Soccer::getTotalBallPositions()
 GLuint Soccer::getGroundTex()
 {
 	return groundTex;
+}
+
+GLuint Soccer::getGoalTex()
+{
+	return goalTex;
 }

@@ -19,6 +19,12 @@ class Ground {
 	float bottomLeftY;
 	float viewX;
 	float viewY;
+	float goalPosY;
+	float goalWidth;
+	float goalDepth;
+
+	void applyRotation(float angle, float x, float y);
+	void restoreRotation();
 public:
 	Ground(float width, float height, float bottomLeftX, float bottomLeftY, Soccer *soccer);
 	virtual ~Ground();
@@ -27,9 +33,13 @@ public:
 	float getMaxX();
 	float getMinY();
 	float getMaxY();
+	float getGoalPosY();
 	void draw();
+	void drawGoals();
 	float getGroundHeight();
 	float getGroundWidth();
+	float getGoalWidth();
+	float getGoalDepth();
 };
 
 #endif /* INCLUDE_GROUND_H_ */

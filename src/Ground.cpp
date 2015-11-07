@@ -6,6 +6,37 @@
  */
 
 #include "../include/Ground.h"
+#include <math.h>
+
+void Ground::applyRotation(float angle, float x, float y)
+{
+    angle = angle * 3.1415 / 180;
+
+    float T1[] = {1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                x, y, 0, 1};
+
+    float T2[] = {1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                -x, -y, 0, 1};
+
+    float R[] = {cos(angle), sin(angle), 0, 0,
+                 -sin(angle), cos(angle), 0, 0,
+                 0, 0, 1, 0,
+                 0, 0, 0, 1};
+
+    glPushMatrix();
+    glMultMatrixf(T1);
+    glMultMatrixf(R);
+    glMultMatrixf(T2);
+}
+
+void Ground::restoreRotation()
+{
+    glPopMatrix();
+}
 
 Ground::Ground(float width, float height, float bottomLeftX, float bottomLeftY, Soccer *soccer)
 {
@@ -14,6 +45,9 @@ Ground::Ground(float width, float height, float bottomLeftX, float bottomLeftY, 
 	this->bottomLeftX = bottomLeftX;
 	this->bottomLeftY = bottomLeftY;
 	this->soccer = soccer;
+	this->goalPosY = bottomLeftY + 0.5 * height;
+	this->goalWidth = 20;
+	this->goalDepth = 10;
 	//this->texture = soccer->getGroundTex();
 }
 
@@ -57,6 +91,36 @@ void Ground::draw()
 	glEnd();
 }
 
+void Ground::drawGoals()
+{
+	int goalWidth = 143 / 7;
+	int goalHeight = 244 / 7;
+
+	glBindTexture(GL_TEXTURE_2D, soccer->getGoalTex());
+
+	int x = bottomLeftX + 0.08 * width;
+	int y = goalPosY;
+
+	glBegin(GL_QUADS);
+		glTexCoord2f(0, 0); glVertex3f(x - goalWidth/2, y - goalHeight/2, 0);
+		glTexCoord2f(1, 0); glVertex3f(x + goalWidth/2, y - goalHeight/2, 0);
+		glTexCoord2f(1, 1); glVertex3f(x + goalWidth/2, y + goalHeight/2, 0);
+		glTexCoord2f(0, 1); glVertex3f(x - goalWidth/2, y + goalHeight/2, 0);
+	glEnd();
+
+	x = bottomLeftX + 0.92 * width;
+	y = goalPosY;
+
+	applyRotation(180, x, y);
+	glBegin(GL_QUADS);
+		glTexCoord2f(0, 0); glVertex3f(x - goalWidth/2, y - goalHeight/2, 0);
+		glTexCoord2f(1, 0); glVertex3f(x + goalWidth/2, y - goalHeight/2, 0);
+		glTexCoord2f(1, 1); glVertex3f(x + goalWidth/2, y + goalHeight/2, 0);
+		glTexCoord2f(0, 1); glVertex3f(x - goalWidth/2, y + goalHeight/2, 0);
+	glEnd();
+	restoreRotation();
+}
+
 float Ground::getGroundHeight()
 {
 	return height;
@@ -67,3 +131,17 @@ float Ground::getGroundWidth()
 	return width;
 }
 
+float Ground::getGoalPosY()
+{
+	return goalPosY;
+}
+
+float Ground::getGoalWidth()
+{
+	return goalWidth;
+}
+
+float Ground::getGoalDepth()
+{
+	return goalDepth;
+}

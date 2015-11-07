@@ -123,10 +123,22 @@ void Player::moveForward()
 	}
 
 	if(pos_x > maxX)
-		pos_x = maxX;
+	{
+		if(pos_y < ground->getGoalPosY() - ground->getGoalWidth()/2 || pos_y > ground->getGoalPosY() + ground->getGoalWidth()/2)
+			pos_x = maxX;
+		else
+			if(pos_x > maxX + ground->getGoalDepth())
+				pos_x = maxX + ground->getGoalDepth();
+	}
 
 	if(pos_x < minX)
-		pos_x = minX;
+	{
+		if(pos_y < ground->getGoalPosY() - ground->getGoalWidth()/2 || pos_y > ground->getGoalPosY() + ground->getGoalWidth()/2)
+				pos_x = minX;
+		else
+			if(pos_x < minX - ground->getGoalDepth())
+				pos_x = minX - ground->getGoalDepth();
+	}
 
 	if(pos_y > maxY)
 		pos_y = maxY;

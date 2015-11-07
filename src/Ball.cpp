@@ -100,16 +100,49 @@ void Ball::updatePosition()
 	d += v;
 	position = (position + (int)v) % totalPositions;
 
+	float lowerGoalY = ground->getGoalPosY() - ground->getGoalWidth()/2;
+	float upperGoalY = ground->getGoalPosY() + ground->getGoalWidth()/2;
+
 	if(pos_x > maxX)
 	{
-		pos_x = maxX;
-		angle = 180 - angle;
+		float y_intercept = pos_y + (maxX - pos_x) * tan(angle * 3.1415 / 180);
+		if(y_intercept >= lowerGoalY && y_intercept <= upperGoalY)
+		{
+			if(pos_x > maxX + ground->getGoalDepth())
+				pos_x = maxX + ground->getGoalDepth();
+
+			if(pos_y < lowerGoalY)
+				pos_y = lowerGoalY;
+
+			if(pos_y > upperGoalY)
+				pos_y = upperGoalY;
+		}
+		else
+		{
+			pos_x = maxX;
+			angle = 180 - angle;
+		}
 	}
 
 	if(pos_x < minX)
 	{
-		pos_x = minX;
-		angle = 180 - angle;
+		float y_intercept = pos_y + (minX - pos_x) * tan(angle * 3.1415 / 180);
+		if(y_intercept >= lowerGoalY && y_intercept <= upperGoalY)
+		{
+			if(pos_x < minX - ground->getGoalDepth())
+				pos_x = minX - ground->getGoalDepth();
+
+			if(pos_y < lowerGoalY)
+				pos_y = lowerGoalY;
+
+			if(pos_y > upperGoalY)
+				pos_y = upperGoalY;
+		}
+		else
+		{
+			pos_x = minX;
+			angle = 180 - angle;
+		}
 	}
 
 	if(pos_y > maxY)

@@ -23,6 +23,7 @@ class Soccer
 	GLuint *playerTex[PLAYER_TEX];
 	GLuint *ballTex;
 	GLuint groundTex;
+	GLuint goalTex;
 
 public:
 	Soccer();
@@ -33,6 +34,7 @@ public:
 	GLuint *getBallTex();
 	int getTotalBallPositions();
 	GLuint getGroundTex();
+	GLuint getGoalTex();
 };
 
 #endif /* INCLUDE_SOCCER_H_ */
