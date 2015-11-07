@@ -16,6 +16,7 @@ using namespace std;
 
 #define SCREEN_WIDTH 1024*2
 #define SCREEN_HEIGHT 768*2
+#define JOYSTICK_THRESHOLD 200
 #define TIMER 50
 
 Game *game;
@@ -24,6 +25,108 @@ bool keysPressed[4];
 clock_t shootPressStart,shootPressEnd;
 bool isShootKeyPressed = false;
 clock_t startTime,endTime;
+
+
+void handleJoystickInput(unsigned int buttomMask, int xaxis, int yaxis, int zaxis)
+{
+	Control control;
+	control.playerId = game->getMyPlayerId();
+	control.teamNo = game->getMyPlayerTeam();
+
+	std::cout << xaxis << " " << yaxis << " " << zaxis << std::endl;
+
+	control.type = MOVE;
+	if(xaxis > JOYSTICK_THRESHOLD || xaxis < -JOYSTICK_THRESHOLD)
+	{
+		control.angle = atan(-yaxis / xaxis) * 180 / 3.1415;
+		if(xaxis < 0)
+			control.angle += 180;
+		if(game->getType() == CREATOR)
+			game->movePlayer(control.teamNo, control.playerId, control.angle);
+		else
+			game->insertControl(control);
+		return;
+	}
+	else
+	{
+		if(yaxis > JOYSTICK_THRESHOLD || yaxis < -JOYSTICK_THRESHOLD)
+		{
+			if(xaxis == 0)
+			{
+				control.angle = 90;
+				if(yaxis > 0)
+					control.angle += 180;
+				if(game->getType() == CREATOR)
+					game->movePlayer(control.teamNo, control.playerId, control.angle);
+				else
+					game->insertControl(control);
+				return;
+			}
+			else
+			{
+				control.angle = atan(-yaxis / xaxis) * 180 / 3.1415;
+				if(xaxis < 0)
+					control.angle += 180;
+				if(game->getType() == CREATOR)
+					game->movePlayer(control.teamNo, control.playerId, control.angle);
+				else
+					game->insertControl(control);
+				return;
+			}
+		}
+		else
+		{
+			return;
+		}
+	}
+
+	if(xaxis > JOYSTICK_THRESHOLD)
+	{
+		if(yaxis > JOYSTICK_THRESHOLD)
+		{
+
+		}
+		else if(yaxis < -JOYSTICK_THRESHOLD)
+		{
+
+		}
+		else
+		{
+
+		}
+	}
+	else if(xaxis < -JOYSTICK_THRESHOLD)
+	{
+		if(yaxis > JOYSTICK_THRESHOLD)
+		{
+
+		}
+		else if(yaxis < -JOYSTICK_THRESHOLD)
+		{
+
+		}
+		else
+		{
+
+		}
+	}
+	else
+	{
+		if(yaxis > JOYSTICK_THRESHOLD)
+		{
+
+		}
+		else if(yaxis < -JOYSTICK_THRESHOLD)
+		{
+
+		}
+		else
+		{
+
+		}
+
+	}
+}
 
 void handleSpecialUpInput(int key,int x,int y)
 {
@@ -276,6 +379,7 @@ int main(int argc, char *argv[])
 	glutKeyboardUpFunc(handleKeyUp);
 	glutSpecialFunc(handleSpecialInput);
 	glutSpecialUpFunc(handleSpecialUpInput);
+	glutJoystickFunc(handleJoystickInput, 25);
 	glutReshapeFunc(handleResize);
     glutTimerFunc(TIMER, update, 0);
 
