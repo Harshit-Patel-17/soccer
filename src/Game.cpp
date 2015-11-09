@@ -388,20 +388,15 @@ void Game::movePlayer(int playerTeam, int playerId, float angle)
 	player->moveForward();
 
 
-	if((possessorPlayerTeam() != playerTeam && !ball->isOnShoot()) || (playerId == 2))
-	{
-		float dx = player->getPosX() - ball->getPosX();
-		float dy = player->getPosY() - ball->getPosY();
-		float dist = sqrt(dx*dx + dy*dy);
 
-		if(dist < HIT_THRESHOLD)
-		{
-			setBallFree();
-			player->possess();
-			//possessor = myPlayer;
-			//possessorPlayerTeam = myPlayerTeam;
-			//possessorPlayerId = myPlayerId;
-		}
+	float dx = player->getPosX() - ball->getPosX();
+	float dy = player->getPosY() - ball->getPosY();
+	float dist = sqrt(dx*dx + dy*dy);
+
+	if(dist < HIT_THRESHOLD)
+	{
+		setBallFree();
+		player->possess();
 	}
 }
 
@@ -417,11 +412,74 @@ void Game::moveBall()
 		else
 			playerTeam = 1;
 
-		playerId = 2; //change logic,compute minimum distance
-		sleep(2);
+		playerId = 2;
+		//sleep(2);
 
 		pass(playerTeam, playerId);
+		return;
 	}
+
+	// if within the threshold,goalkeeper should take claim of the ball
+	for(int i=0;i<2;i++)
+	{
+		Player *player;
+
+		if(i==0)
+			player = team1[2];
+		else
+			player = team2[2];
+
+		float dx = player->getPosX() - ball->getPosX();
+		float dy = player->getPosY() - ball->getPosY();
+		float dist = sqrt(dx*dx + dy*dy);
+		if(dist < GK_CLAIM_THRESHOLD && !ball->isBallPassed())
+		{
+			setBallFree();
+			player->possess();
+			ball->setIsPass(false);
+			ball->setPosX(player->getPosX());
+			ball->setPosY(player->getPosY());
+			ball->setAccn(-1000.0);
+			return;
+		}
+	}
+
+	// if anybody comes in way of the pass, he should intercept
+	for(int team=0;team<2;team++)
+	{
+		for(int i=0;i<PLAYERS_PER_TEAM-1;i++)
+		{
+			pair<int,int> ballPassedBy = ball->getBallPassedBy();
+			if(ballPassedBy.first == team && ballPassedBy.second == i && ball->isBallPassed()) continue;
+
+			Player *player;
+
+			if(team == 0)
+			{
+				player = team1[i];
+			}
+			else
+			{
+				player = team2[i];
+			}
+
+			float dx = player->getPosX() - ball->getPosX();
+			float dy = player->getPosY() - ball->getPosY();
+			float dist = sqrt(dx*dx + dy*dy);
+
+			if(dist < HIT_THRESHOLD && ball->isBallPassed())
+			{
+				setBallFree();
+				player->possess();
+				ball->setIsPass(false);
+				ball->setPosX(player->getPosX());
+				ball->setPosY(player->getPosY());
+				ball->setAccn(-1000.0);
+				return;
+			}
+		}
+	}
+
 	float u = ball->getU();
 	float a = ball->getA();
 	float d = ball->getD();
@@ -442,30 +500,6 @@ void Game::moveBall()
 
 	ball->updatePosition();
 
-	// if within the threshold,goalkeeper should take claim of the ball
-	for(int i=0;i<2;i++)
-	{
-		Player *player;
-
-		if(i==0)
-			player = team1[2];
-		else
-			player = team2[2];
-
-		float dx = player->getPosX() - ball->getPosX();
-		float dy = player->getPosY() - ball->getPosY();
-		float dist = sqrt(dx*dx + dy*dy);
-
-		if(dist < GK_CLAIM_THRESHOLD && !ball->isBallPassed())
-		{
-			setBallFree();
-			player->possess();
-			ball->setPosX(player->getPosX());
-			ball->setPosY(player->getPosY());
-			ball->setAccn(DBL_MIN);
-			return;
-		}
-	}
 
 	if(!(ball->isBallPassed()))
 		applyBallDeflection(oldX, oldY, newX, newY);
@@ -605,6 +639,8 @@ void Game::shoot(int playerTeam, int playerId)
 
 void Game::pass(int playerTeam, int playerId)
 {
+	ball->setIsPass(true);
+	ball->setBallPassedBy(make_pair(playerTeam, playerId));
 	Player *player, *destPlayer;
 	int destPlayerId;
 

@@ -49,6 +49,7 @@ Ball::Ball(float pos_x, float pos_y, float angle, Soccer *soccer, Ground *ground
 	this->position = 0;
 	this->totalPositions = soccer->getTotalBallPositions();
 	this->isPass = false;
+	this->ballPassedBy = make_pair(-1,-1);
 	this->ground = ground;
 	this->soccer = soccer;
 	this->pos_x = pos_x;
@@ -247,4 +248,14 @@ bool Ball::isBallPassed()
 void Ball::setAccn(float a)
 {
 	this->a = a;
+}
+
+void Ball::setBallPassedBy(pair<int,int> ballPassedBy)
+{
+	this->ballPassedBy = ballPassedBy;
+}
+
+pair<int,int> Ball::getBallPassedBy()
+{
+	return this->ballPassedBy;
 }

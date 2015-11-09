@@ -19,6 +19,7 @@ class Ball {
 	int position;
 	int totalPositions;
 	bool isPass;
+	pair<int,int> ballPassedBy;
 	float pos_x;
 	float pos_y;
 	float angle;
@@ -52,6 +53,8 @@ public:
 	float getD();
 	void setIsPass(bool isPass);
 	bool isBallPassed();
+	void setBallPassedBy(pair<int,int>);
+	pair<int,int> getBallPassedBy();
 
 	void operator=(Ball& ball);
 };

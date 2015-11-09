@@ -188,7 +188,6 @@ void Player::pass(int playerTeam, int playerId, Player *destPlayer, int destPlay
 	if(possession == false)
 		return;
 
-	ball->setIsPass(true);
 	float dist = sqrt((src.first - dest.first)*(src.first - dest.first)
 			+ (src.second - dest.second)*(src.second - dest.second));
 
@@ -199,8 +198,8 @@ void Player::pass(int playerTeam, int playerId, Player *destPlayer, int destPlay
 	if((dest.first - src.first) < 0.0)
 		angle += 3.1415;
 
-	ball->hit(u, accn, (angle*180.0)/3.1415);
 	possession = false;
+	ball->hit(u, accn, (angle*180.0)/3.1415);
 
 }
 
