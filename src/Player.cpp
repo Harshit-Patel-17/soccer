@@ -175,11 +175,11 @@ void Player::positionGoalkeeper()
 			pos_y = GK_MIN_Y;
 }
 
-void Player::shoot()
+void Player::shoot(float shootAngle, float shootPower)
 {
 	if(possession == false)
 		return;
-	ball->hit(8.0, -0.3, angle);
+	ball->hit(shootPower, -0.3, shootAngle);
 	possession = false;
 }
 

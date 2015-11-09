@@ -17,6 +17,8 @@ using namespace std;
 #define SCREEN_WIDTH 1024*2
 #define SCREEN_HEIGHT 768*2
 #define JOYSTICK_THRESHOLD 200
+#define ANGLE_ROTATION 5
+#define SHOOT_RATE 0.25
 #define TIMER 50
 
 Game *game;
@@ -43,6 +45,8 @@ void handleJoystickInput(unsigned int buttomMask, int xaxis, int yaxis, int zaxi
 			game->movePlayer(control.teamNo, control.playerId, control.angle);
 		else
 			game->insertControl(control);
+
+		game->updateShootAngle(ANGLE_ROTATION, control.angle);
 	}
 	else
 	{
@@ -68,6 +72,8 @@ void handleJoystickInput(unsigned int buttomMask, int xaxis, int yaxis, int zaxi
 				else
 					game->insertControl(control);
 			}
+
+			game->updateShootAngle(ANGLE_ROTATION, control.angle);
 		}
 	}
 
@@ -83,6 +89,8 @@ void handleJoystickInput(unsigned int buttomMask, int xaxis, int yaxis, int zaxi
 				game->shoot(game->getMyPlayerTeam(), game->getMyPlayerId());
 			else
 				game->insertControl(control);
+
+			game->updateShootPower(SHOOT_RATE);
 			break;
 
 		case GLUT_JOYSTICK_BUTTON_C:
@@ -206,6 +214,9 @@ void handleSpecialInput(int key, int x, int y)
 			}
             break;
     }
+
+    game->updateShootAngle(ANGLE_ROTATION, control.angle);
+
     if(game->getType() == CREATOR)
     	game->movePlayer(control.teamNo, control.playerId, control.angle);
     else
@@ -249,6 +260,8 @@ void handleKeyPress(unsigned char key, int x, int y)
         		game->shoot(game->getMyPlayerTeam(), game->getMyPlayerId());
 			else
 				game->insertControl(control);
+
+        	game->updateShootPower(SHOOT_RATE);
         	break;
 
         case 's':

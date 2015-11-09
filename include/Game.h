@@ -127,6 +127,8 @@ public:
 	int possessorPlayerTeam();
 	int possessorPlayerId();
 	void setBallFree(); //No possession by any player
+	void updateShootAngle(float amount, float towards);
+	void updateShootPower(float amount);
 	void shoot(int playerTeam, int playerId);
 	void pass(int playerTeam, int playerId);
 	void join(char *ip, int port);

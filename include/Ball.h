@@ -12,10 +12,15 @@
 #include "../include/Ground.h"
 #include <iostream>
 
+#define MIN_SHOOT_POWER 5
+#define MAX_SHOOT_POWER 10
+
 using namespace std;
 
 class Ball {
-	bool onShoot;
+	bool isShoot;
+	float shootAngle;
+	float shootPower;
 	int position;
 	int totalPositions;
 	bool isPass;
@@ -29,6 +34,8 @@ class Ball {
 	Ground *ground;
 	Soccer *soccer;
 
+	float min(float x, float y);
+	float max(float x, float y);
 	void applyRotation(float angle, float x, float y);
 	void restoreRotation();
 public:
@@ -51,6 +58,13 @@ public:
 	float getU();
 	float getA();
 	float getD();
+	void setIsShoot(bool isShoot);
+	void setShootAngle(bool shootAngle);
+	float getShootAngle();
+	void updateShootAngle(float amount, float towards);
+	void setShootPower(float shootPower);
+	float getShootPower();
+	void updateShootPower(float amount);
 	void setIsPass(bool isPass);
 	bool isBallPassed();
 	void setBallPassedBy(pair<int,int>);

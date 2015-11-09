@@ -8,6 +8,22 @@
 #include "../include/Ball.h"
 #include <math.h>
 
+float Ball::min(float x, float y)
+{
+	if(x <= y)
+		return x;
+	else
+		return y;
+}
+
+float Ball::max(float x, float y)
+{
+	if(x >= y)
+		return x;
+	else
+		return y;
+}
+
 void Ball::applyRotation(float angle, float x, float y)
 {
     angle = angle * 3.1415 / 180;
@@ -45,7 +61,7 @@ Ball::Ball()
 
 Ball::Ball(float pos_x, float pos_y, float angle, Soccer *soccer, Ground *ground)
 {
-	this->onShoot = false;
+	this->isShoot = false;
 	this->position = 0;
 	this->totalPositions = soccer->getTotalBallPositions();
 	this->isPass = false;
@@ -80,6 +96,36 @@ void Ball::draw()
 		glTexCoord2f(0, 1); glVertex3f(pos_x - width/2, pos_y + height/2, 0);
 	glEnd();
 	restoreRotation();
+
+	if(isShoot)
+	{
+		glBindTexture(GL_TEXTURE_2D, soccer->getArrowTex());
+
+		width = 101 / 8;
+		height = 57 / 8;
+		int dist = 10;
+
+		applyRotation(shootAngle, pos_x, pos_y);
+		glBegin(GL_QUADS);
+			glTexCoord2f(0, 0); glVertex3f(pos_x + dist - width/2, pos_y - height/2, 0);
+			glTexCoord2f(1, 0); glVertex3f(pos_x + dist + width/2, pos_y - height/2, 0);
+			glTexCoord2f(1, 1); glVertex3f(pos_x + dist + width/2, pos_y + height/2, 0);
+			glTexCoord2f(0, 1); glVertex3f(pos_x + dist - width/2, pos_y + height/2, 0);
+		glEnd();
+		restoreRotation();
+
+		float powerBarWidth = 7;
+		float powerBarHeight = 1;
+		float powerBarLowerX = pos_x - powerBarWidth/2;
+		float powerBarLowerY = pos_y - 10;
+		glDisable(GL_TEXTURE_2D);
+		glColor3f(1.0f, 1.0f, 1.0f);
+		glRectf(powerBarLowerX, powerBarLowerY , powerBarLowerX + powerBarWidth, powerBarLowerY + powerBarHeight);
+		glColor3f(1.0f, 0.0f, 0.0f);
+		glRectf(powerBarLowerX, powerBarLowerY , powerBarLowerX + (shootPower - MIN_SHOOT_POWER) / (MAX_SHOOT_POWER - MIN_SHOOT_POWER) * powerBarWidth, powerBarLowerY + powerBarHeight);
+		glColor3f(1.0f, 1.0f, 1.0f);
+		glEnable(GL_TEXTURE_2D);
+	}
 }
 
 void Ball::updatePosition()
@@ -207,7 +253,7 @@ void Ball::operator=(Ball& ball)
 
 bool Ball::isOnShoot()
 {
-	return onShoot;
+	return isShoot;
 }
 
 float Ball::getU()
@@ -235,9 +281,65 @@ void Ball::setAngle(float angle)
 	this->angle = angle;
 }
 
+void Ball::setIsShoot(bool isShoot)
+{
+	this->isShoot = isShoot;
+}
+
 void Ball::setIsPass(bool isPass)
 {
 	this->isPass = isPass;
+}
+
+void Ball::setShootAngle(bool shootAngle)
+{
+	this->shootAngle = shootAngle;
+}
+
+float Ball::getShootAngle()
+{
+	return shootAngle;
+}
+
+void Ball::updateShootAngle(float amount, float towards)
+{
+	//shootAngle += amount;
+	towards = (towards + 360) - int((towards + 360) / 360) * 360;
+	shootAngle = (shootAngle + 360) - int((shootAngle + 360) / 360) * 360;
+
+	float clockWiseAngle, antiClockWiseAngle;
+
+	if(shootAngle >= towards)
+		clockWiseAngle = shootAngle - towards;
+	else
+		clockWiseAngle = (360 - shootAngle) - towards;
+
+	if(towards <= shootAngle)
+		antiClockWiseAngle = (360 - shootAngle) + towards;
+	else
+		antiClockWiseAngle = towards - shootAngle;
+
+	if(clockWiseAngle <= antiClockWiseAngle)
+		shootAngle -= amount;
+	else
+		shootAngle += amount;
+
+}
+
+void Ball::setShootPower(float shootPower)
+{
+	this->shootPower = shootPower;
+}
+
+float Ball::getShootPower()
+{
+	return shootPower;
+}
+
+void Ball::updateShootPower(float amount)
+{
+	shootPower += min(amount, max(MAX_SHOOT_POWER - shootPower, 0));
+	std::cout << shootPower << std::endl;
 }
 
 bool Ball::isBallPassed()

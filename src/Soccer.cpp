@@ -67,6 +67,18 @@ Soccer::Soccer()
 			SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
 		);
 	}
+
+	//Load arrow texture
+	{
+		std::string filePath = "../res/misc/arrow.png";
+		arrowTex = SOIL_load_OGL_texture // load an image file directly as a new OpenGL texture
+		(
+			filePath.c_str(),
+			SOIL_LOAD_AUTO,
+			SOIL_CREATE_NEW_ID,
+			SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
+		);
+	}
 }
 
 Soccer::~Soccer()
@@ -111,4 +123,9 @@ GLuint Soccer::getGroundTex()
 GLuint Soccer::getGoalTex()
 {
 	return goalTex;
+}
+
+GLuint Soccer::getArrowTex()
+{
+	return arrowTex;
 }

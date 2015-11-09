@@ -45,7 +45,7 @@ public:
 
 	void moveForward();
 	void positionGoalkeeper();
-	void shoot();
+	void shoot(float shootAngle, float shootPower);
 	void pass(int playerTeam, int playerId, Player *destPlayer, int destPlayerId, pair<float, float> dest, pair<float, float> src);
 	int getTexture();
 	void setTexture(int texture);

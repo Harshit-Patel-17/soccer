@@ -506,8 +506,8 @@ void Game::moveBall()
 	if(fabs(dy_unit) >= Y_CHANGE_THRESHOLD
 			&& newY > GK_MIN_Y && newY < GK_MAX_Y)
 	{
-		team2[2]->positionGoalkeeper();
-		team1[2]->positionGoalkeeper();
+		//team2[2]->positionGoalkeeper();
+		//team1[2]->positionGoalkeeper();
 	}
 	else
 	{
@@ -623,6 +623,23 @@ void Game::setBallFree()
 	}
 }
 
+void shootTimer(int ms, Player *player, Ball *ball)
+{
+	std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+	player->shoot(ball->getShootAngle(), ball->getShootPower());
+	ball->setIsShoot(false);
+}
+
+void Game::updateShootAngle(float amount, float towards)
+{
+	ball->updateShootAngle(amount, towards);
+}
+
+void Game::updateShootPower(float amount)
+{
+	ball->updateShootPower(amount);
+}
+
 void Game::shoot(int playerTeam, int playerId)
 {
 	Player *player;
@@ -632,9 +649,19 @@ void Game::shoot(int playerTeam, int playerId)
 	else
 		player = team2[playerId];
 
-	ball->setIsPass(false);
+	if(ball->isOnShoot())
+		return;
 
-	player->shoot();
+	if(!player->InPossession())
+		return;
+
+	ball->setIsPass(false);
+	ball->setShootAngle(player->getAngle());
+	ball->setShootPower(MIN_SHOOT_POWER);
+	ball->setIsShoot(true);
+	std::thread timer(shootTimer, 700, player, ball);
+	timer.detach();
+	//player->shoot();
 }
 
 void Game::pass(int playerTeam, int playerId)

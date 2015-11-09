@@ -46,8 +46,8 @@ Ground::Ground(float width, float height, float bottomLeftX, float bottomLeftY, 
 	this->bottomLeftY = bottomLeftY;
 	this->soccer = soccer;
 	this->goalPosY = bottomLeftY + 0.5 * height;
-	this->goalWidth = 20;
-	this->goalDepth = 10;
+	this->goalWidth = 50;
+	this->goalDepth = 20;
 	//this->texture = soccer->getGroundTex();
 }
 
@@ -93,12 +93,12 @@ void Ground::draw()
 
 void Ground::drawGoals()
 {
-	int goalWidth = 143 / 7;
-	int goalHeight = 244 / 7;
+	int goalWidth = 40;
+	int goalHeight = (244.0 / 143) * goalWidth;
 
 	glBindTexture(GL_TEXTURE_2D, soccer->getGoalTex());
 
-	int x = bottomLeftX + 0.08 * width;
+	int x = bottomLeftX + 0.06 * width;
 	int y = goalPosY;
 
 	glBegin(GL_QUADS);
@@ -108,7 +108,7 @@ void Ground::drawGoals()
 		glTexCoord2f(0, 1); glVertex3f(x - goalWidth/2, y + goalHeight/2, 0);
 	glEnd();
 
-	x = bottomLeftX + 0.92 * width;
+	x = bottomLeftX + 0.94 * width;
 	y = goalPosY;
 
 	applyRotation(180, x, y);
