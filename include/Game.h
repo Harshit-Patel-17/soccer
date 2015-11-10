@@ -24,6 +24,8 @@
 #define GROUND_WIDTH 192*2
 #define GROUND_HEIGHT 108*2
 #define PLAYERS_PER_TEAM 3
+#define ANGLE_ROTATION 2
+#define SHOOT_RATE 0.25
 
 struct PlayerDetails
 {
@@ -127,8 +129,8 @@ public:
 	int possessorPlayerTeam();
 	int possessorPlayerId();
 	void setBallFree(); //No possession by any player
-	void updateShootAngle(float amount, float towards);
-	void updateShootPower(float amount);
+	void updateShootAngle(float amount, float towards, int playerTeam, int playerId);
+	void updateShootPower(float amount, int playerTeam, int playerId);
 	void shoot(int playerTeam, int playerId);
 	void pass(int playerTeam, int playerId);
 	void join(char *ip, int port);

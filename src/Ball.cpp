@@ -241,6 +241,10 @@ void Ball::setPosition(float x, float y)
 
 void Ball::operator=(Ball& ball)
 {
+	this->isShoot = ball.isShoot;
+	this->shootAngle = ball.shootAngle;
+	this->shootPower = ball.shootPower;
+	this->isPass = ball.isPass;
 	this->position = ball.position;
 	this->totalPositions = ball.totalPositions;
 	this->pos_x = ball.pos_x;
@@ -291,7 +295,7 @@ void Ball::setIsPass(bool isPass)
 	this->isPass = isPass;
 }
 
-void Ball::setShootAngle(bool shootAngle)
+void Ball::setShootAngle(float shootAngle)
 {
 	this->shootAngle = shootAngle;
 }
@@ -307,14 +311,16 @@ void Ball::updateShootAngle(float amount, float towards)
 	towards = (towards + 360) - int((towards + 360) / 360) * 360;
 	shootAngle = (shootAngle + 360) - int((shootAngle + 360) / 360) * 360;
 
+	std::cout << shootAngle << " " << towards << std::endl;
+
 	float clockWiseAngle, antiClockWiseAngle;
 
 	if(shootAngle >= towards)
 		clockWiseAngle = shootAngle - towards;
 	else
-		clockWiseAngle = (360 - shootAngle) - towards;
+		clockWiseAngle = (360 - towards) + shootAngle;
 
-	if(towards <= shootAngle)
+	if(shootAngle >= towards)
 		antiClockWiseAngle = (360 - shootAngle) + towards;
 	else
 		antiClockWiseAngle = towards - shootAngle;
@@ -339,7 +345,6 @@ float Ball::getShootPower()
 void Ball::updateShootPower(float amount)
 {
 	shootPower += min(amount, max(MAX_SHOOT_POWER - shootPower, 0));
-	std::cout << shootPower << std::endl;
 }
 
 bool Ball::isBallPassed()

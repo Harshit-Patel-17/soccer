@@ -59,7 +59,7 @@ public:
 	float getA();
 	float getD();
 	void setIsShoot(bool isShoot);
-	void setShootAngle(bool shootAngle);
+	void setShootAngle(float shootAngle);
 	float getShootAngle();
 	void updateShootAngle(float amount, float towards);
 	void setShootPower(float shootPower);

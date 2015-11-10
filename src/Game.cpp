@@ -630,13 +630,33 @@ void shootTimer(int ms, Player *player, Ball *ball)
 	ball->setIsShoot(false);
 }
 
-void Game::updateShootAngle(float amount, float towards)
+void Game::updateShootAngle(float amount, float towards, int playerTeam, int playerId)
 {
+	Player *player;
+
+	if(playerTeam == 0)
+		player = team1[playerId];
+	else
+		player = team2[playerId];
+
+	if(!player->InPossession())
+		return;
+
 	ball->updateShootAngle(amount, towards);
 }
 
-void Game::updateShootPower(float amount)
+void Game::updateShootPower(float amount, int playerTeam, int playerId)
 {
+	Player *player;
+
+	if(playerTeam == 0)
+		player = team1[playerId];
+	else
+		player = team2[playerId];
+
+	if(!player->InPossession())
+		return;
+
 	ball->updateShootPower(amount);
 }
 
@@ -760,10 +780,12 @@ void Game::applyControl(Control control)
 
 	case MOVE:
 		movePlayer(control.teamNo, control.playerId, control.angle);
+		updateShootAngle(ANGLE_ROTATION, control.angle, control.teamNo, control.playerId);
 		break;
 
 	case SHOOT:
 		shoot(control.teamNo, control.playerId);
+		updateShootPower(SHOOT_RATE, control.teamNo, control.playerId);
 		break;
 
 	case PASS:

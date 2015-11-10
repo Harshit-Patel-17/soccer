@@ -17,16 +17,139 @@ using namespace std;
 #define SCREEN_WIDTH 1024*2
 #define SCREEN_HEIGHT 768*2
 #define JOYSTICK_THRESHOLD 200
-#define ANGLE_ROTATION 5
-#define SHOOT_RATE 0.25
-#define TIMER 50
+#define REFRESH_TIMER 50
+#define IO_TIMER 25
 
 Game *game;
 
-bool keysPressed[4];
+enum keys {RIGHT_KEY, LEFT_KEY, UP_KEY, DOWN_KEY, PASS_KEY, SHOOT_KEY, ESC_KEY};
+
+bool keysPressed[7];
 clock_t shootPressStart,shootPressEnd;
 bool isShootKeyPressed = false;
 clock_t startTime,endTime;
+
+void handleKeyboardInput(int value)
+{
+	Control control;
+	control.playerId = game->getMyPlayerId();
+	control.teamNo = game->getMyPlayerTeam();
+
+	control.type = MOVE;
+	if(keysPressed[RIGHT_KEY])
+	{
+		if(keysPressed[UP_KEY])
+		{
+			control.angle = 45;
+		}
+		else if(keysPressed[DOWN_KEY])
+		{
+			control.angle = 315;
+		}
+		else
+		{
+			control.angle = 0;
+		}
+
+		if(game->getType() == CREATOR)
+			game->movePlayer(control.teamNo, control.playerId, control.angle);
+		else
+			game->insertControl(control);
+
+		game->updateShootAngle(ANGLE_ROTATION, control.angle, game->getMyPlayerTeam(), game->getMyPlayerId());
+	}
+	else if(keysPressed[LEFT_KEY])
+	{
+		if(keysPressed[UP_KEY])
+		{
+			control.angle = 135;
+		}
+		else if(keysPressed[DOWN_KEY])
+		{
+			control.angle = 225;
+		}
+		else
+		{
+			control.angle = 180;
+		}
+
+		if(game->getType() == CREATOR)
+			game->movePlayer(control.teamNo, control.playerId, control.angle);
+		else
+			game->insertControl(control);
+
+		game->updateShootAngle(ANGLE_ROTATION, control.angle, game->getMyPlayerTeam(), game->getMyPlayerId());
+	}
+	else if(keysPressed[UP_KEY])
+	{
+		if(keysPressed[RIGHT_KEY])
+		{
+			control.angle = 45;
+		}
+		else if(keysPressed[LEFT_KEY])
+		{
+			control.angle = 135;
+		}
+		else
+		{
+			control.angle = 90;
+		}
+
+		if(game->getType() == CREATOR)
+			game->movePlayer(control.teamNo, control.playerId, control.angle);
+		else
+			game->insertControl(control);
+
+		game->updateShootAngle(ANGLE_ROTATION, control.angle, game->getMyPlayerTeam(), game->getMyPlayerId());
+	}
+	else if(keysPressed[DOWN_KEY])
+	{
+		if(keysPressed[RIGHT_KEY])
+		{
+			control.angle = 315;
+		}
+		else if(keysPressed[LEFT_KEY])
+		{
+			control.angle = 225;
+		}
+		else
+		{
+			control.angle = 270;
+		}
+
+		if(game->getType() == CREATOR)
+			game->movePlayer(control.teamNo, control.playerId, control.angle);
+		else
+			game->insertControl(control);
+
+		game->updateShootAngle(ANGLE_ROTATION, control.angle, game->getMyPlayerTeam(), game->getMyPlayerId());
+	}
+
+	if(keysPressed[ESC_KEY])
+	{
+		exit(0);
+	}
+	else if(keysPressed[SHOOT_KEY])
+	{
+		control.type = SHOOT;
+		if(game->getType() == CREATOR)
+			game->shoot(game->getMyPlayerTeam(), game->getMyPlayerId());
+		else
+			game->insertControl(control);
+
+		game->updateShootPower(SHOOT_RATE, game->getMyPlayerTeam(), game->getMyPlayerId());
+	}
+	else if(keysPressed[PASS_KEY])
+	{
+		control.type = PASS;
+		if(game->getType() == CREATOR)
+			game->pass(game->getMyPlayerTeam(), game->getMyPlayerId());
+		else
+			game->insertControl(control);
+	}
+
+	glutTimerFunc(IO_TIMER, handleKeyboardInput, 0);
+}
 
 
 void handleJoystickInput(unsigned int buttomMask, int xaxis, int yaxis, int zaxis)
@@ -46,7 +169,7 @@ void handleJoystickInput(unsigned int buttomMask, int xaxis, int yaxis, int zaxi
 		else
 			game->insertControl(control);
 
-		game->updateShootAngle(ANGLE_ROTATION, control.angle);
+		game->updateShootAngle(ANGLE_ROTATION, control.angle, game->getMyPlayerTeam(), game->getMyPlayerId());
 	}
 	else
 	{
@@ -73,7 +196,7 @@ void handleJoystickInput(unsigned int buttomMask, int xaxis, int yaxis, int zaxi
 					game->insertControl(control);
 			}
 
-			game->updateShootAngle(ANGLE_ROTATION, control.angle);
+			game->updateShootAngle(ANGLE_ROTATION, control.angle, game->getMyPlayerTeam(), game->getMyPlayerId());
 		}
 	}
 
@@ -90,7 +213,7 @@ void handleJoystickInput(unsigned int buttomMask, int xaxis, int yaxis, int zaxi
 			else
 				game->insertControl(control);
 
-			game->updateShootPower(SHOOT_RATE);
+			game->updateShootPower(SHOOT_RATE, game->getMyPlayerTeam(), game->getMyPlayerId());
 			break;
 
 		case GLUT_JOYSTICK_BUTTON_C:
@@ -112,19 +235,19 @@ void handleSpecialUpInput(int key,int x,int y)
 	switch(key)
 	{
 		case GLUT_KEY_RIGHT:
-			keysPressed[0] = false;
+			keysPressed[RIGHT_KEY] = false;
 			break;
 
 		case GLUT_KEY_LEFT:
-			keysPressed[1] = false;
+			keysPressed[LEFT_KEY] = false;
 			break;
 
 		case GLUT_KEY_UP:
-			keysPressed[2] = false;
+			keysPressed[UP_KEY] = false;
 			break;
 
 		case GLUT_KEY_DOWN:
-			keysPressed[3] = false;
+			keysPressed[DOWN_KEY] = false;
 			break;
 	}
 }
@@ -139,8 +262,8 @@ void handleSpecialInput(int key, int x, int y)
     switch(key)
     {
         case GLUT_KEY_RIGHT:
-        	keysPressed[0] = true;
-        	if(keysPressed[2])
+        	keysPressed[RIGHT_KEY] = true;
+        	/*if(keysPressed[2])
         	{
         		control.angle = 45;
         		//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 45);
@@ -154,12 +277,12 @@ void handleSpecialInput(int key, int x, int y)
         	{
         		control.angle = 0;
         		//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 0);
-        	}
+        	}*/
             break;
 
         case GLUT_KEY_LEFT:
-        	keysPressed[1] = true;
-        	if(keysPressed[2])
+        	keysPressed[LEFT_KEY] = true;
+        	/*if(keysPressed[2])
 			{
         		control.angle = 135;
         		//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 135);
@@ -173,12 +296,12 @@ void handleSpecialInput(int key, int x, int y)
 			{
 				control.angle = 180;
 				//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 180);
-			}
+			}*/
             break;
 
         case GLUT_KEY_UP:
-        	keysPressed[2] = true;
-        	if(keysPressed[0])
+        	keysPressed[UP_KEY] = true;
+        	/*if(keysPressed[0])
 			{
         		control.angle = 45;
         		//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 45);
@@ -192,12 +315,12 @@ void handleSpecialInput(int key, int x, int y)
 			{
 				control.angle = 90;
 				//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 90);
-			}
+			}*/
             break;
 
         case GLUT_KEY_DOWN:
-        	keysPressed[3] = true;
-        	if(keysPressed[0])
+        	keysPressed[DOWN_KEY] = true;
+        	/*if(keysPressed[0])
 			{
         		control.angle = 315;
         		//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 315);
@@ -211,34 +334,46 @@ void handleSpecialInput(int key, int x, int y)
 			{
 				control.angle = 270;
 				//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 270);
-			}
+			}*/
             break;
     }
 
-    game->updateShootAngle(ANGLE_ROTATION, control.angle);
+    /*game->updateShootAngle(ANGLE_ROTATION, control.angle, game->getMyPlayerTeam(), game->getMyPlayerId());
 
     if(game->getType() == CREATOR)
     	game->movePlayer(control.teamNo, control.playerId, control.angle);
     else
-    	game->insertControl(control);
+    	game->insertControl(control);*/
 }
 
 void handleKeyUp(unsigned char key, int x, int y)
 {
 	switch(key)
 	{
-	case 's':
-		if(isShootKeyPressed)
-		{
-			shootPressEnd = clock();
-			double cpu_time_used = ((double) (shootPressEnd - shootPressStart)) / CLOCKS_PER_SEC;
-			float initial_velocity = cpu_time_used + 5.0;
-			printf("Key up %c",key);
-			printf("%f ",initial_velocity);
-			//game->shoot(8.0);
-			isShootKeyPressed = false;
-		}
-		break;
+		case 27:
+			keysPressed[ESC_KEY] = false;
+			break;
+
+		case 32:
+			keysPressed[SHOOT_KEY] = false;
+			break;
+
+		case 's':
+			keysPressed[PASS_KEY] = false;
+			break;
+
+		/*case 's':
+			if(isShootKeyPressed)
+			{
+				shootPressEnd = clock();
+				double cpu_time_used = ((double) (shootPressEnd - shootPressStart)) / CLOCKS_PER_SEC;
+				float initial_velocity = cpu_time_used + 5.0;
+				printf("Key up %c",key);
+				printf("%f ",initial_velocity);
+				//game->shoot(8.0);
+				isShootKeyPressed = false;
+			}
+			break;*/
 	}
 }
 
@@ -251,25 +386,28 @@ void handleKeyPress(unsigned char key, int x, int y)
 	switch(key)
 	{
         case 27:
-            exit(0);
+        	keysPressed[ESC_KEY] = true;
+            //exit(0);
             break;
 
         case 32:
-        	control.type = SHOOT;
+        	keysPressed[SHOOT_KEY] = true;
+        	/*control.type = SHOOT;
         	if(game->getType() == CREATOR)
         		game->shoot(game->getMyPlayerTeam(), game->getMyPlayerId());
 			else
 				game->insertControl(control);
 
-        	game->updateShootPower(SHOOT_RATE);
+        	game->updateShootPower(SHOOT_RATE, game->getMyPlayerTeam(), game->getMyPlayerId());*/
         	break;
 
         case 's':
-        	control.type = PASS;
+        	keysPressed[PASS_KEY] = true;
+        	/*control.type = PASS;
         	if(game->getType() == CREATOR)
         		game->pass(game->getMyPlayerTeam(), game->getMyPlayerId());
         	else
-        		game->insertControl(control);
+        		game->insertControl(control);*/
         	break;
 	}
 }
@@ -351,11 +489,14 @@ void drawScene()
 void update(int value)
 {
     glutPostRedisplay();
-    glutTimerFunc(TIMER, update, 0);
+    glutTimerFunc(REFRESH_TIMER, update, 0);
 }
 
 int main(int argc, char *argv[])
 {
+	for(int i = 0; i < 7; i++)
+		keysPressed[i] = false;
+
     glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
 	glutInitWindowSize(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -367,13 +508,15 @@ int main(int argc, char *argv[])
 
 	startTime = clock();
 	glutDisplayFunc(drawScene);
+	//glutIgnoreKeyRepeat(1);
 	glutKeyboardFunc(handleKeyPress);
 	glutKeyboardUpFunc(handleKeyUp);
 	glutSpecialFunc(handleSpecialInput);
 	glutSpecialUpFunc(handleSpecialUpInput);
-	glutJoystickFunc(handleJoystickInput, 25);
+	glutJoystickFunc(handleJoystickInput, IO_TIMER);
 	glutReshapeFunc(handleResize);
-    glutTimerFunc(TIMER, update, 0);
+	glutTimerFunc(IO_TIMER, handleKeyboardInput, 0);
+    glutTimerFunc(REFRESH_TIMER, update, 0);
 
     //soccer = new Soccer();
     //ground = new Ground(GROUND_WIDTH, GROUND_HEIGHT, 0, 0, soccer);
