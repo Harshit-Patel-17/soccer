@@ -21,7 +21,7 @@ using namespace std;
 
 std::mutex stateMutex;
 std::mutex controlQMutex;
-std::mutex effectQMutex;
+std::mutex effectQMutex[3];
 
 std::string getIp() {
 
@@ -225,7 +225,7 @@ void communicate(int newSockFd, Game *game)
 			packet.type = STATE;
 			stateMutex.lock();
 			packet.state = *(game->state);
-			packet.state.effectType = game->removeEffect();
+			packet.state.effectType = game->removeEffect(packet.teamNo, packet.playerId);
 			stateMutex.unlock();
 			count = write(newSockFd, (char *)&packet, sizeof(Packet));
 			persistent = true;
@@ -306,8 +306,8 @@ Game::Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPla
 
 		if(i==2) //goalkeeper
 		{
-			team1[i] = new Player(0, 2, 50.0f, GROUND_HEIGHT/2, 0, soccer, ground, ball);
-			team2[i] = new Player(1, 2, 334.0f, GROUND_HEIGHT/2, 0, soccer, ground, ball);
+			team1[i] = new Player(0, 2, 50.0f, GROUND_HEIGHT/2, 0, soccer, ground, true, ball);
+			team2[i] = new Player(1, 2, 334.0f, GROUND_HEIGHT/2, 0, soccer, ground, true, ball);
 		}
 		else if(i==0)
 		{
@@ -334,7 +334,8 @@ Game::Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPla
 	else
 		myPlayer = team2[myPlayerId];
 
-	effectQ = new std::queue<effect_type>;
+	for(int i = 0; i < 3; i++)
+		effectQ[i] = new std::queue<effect_type>;
 	myPlayer->setIsBot(false);
 
 	controlQ = new std::queue<Control>;
@@ -1399,22 +1400,43 @@ Control Game::removeControl()
 
 void Game::insertEffect(effect_type type)
 {
-	effectQMutex.lock();
-	effectQ->push(type);
-	effectQMutex.unlock();
+	for(int i = 0; i < 2; i++)
+	{
+		for(int j = 0; j < 2; j++)
+		{
+			if(i == 0 && j == 0)
+				continue;
+			if(i == 0)
+			{
+				if(team1[j]->getIsBot())
+					continue;
+			}
+			else
+			{
+				if(team2[j]->getIsBot())
+					continue;
+			}
+			int index = i*2 + j - 1;
+			effectQMutex[index].lock();
+			effectQ[index]->push(type);
+			effectQMutex[index].unlock();
+		}
+	}
 }
 
-effect_type Game::removeEffect()
+effect_type Game::removeEffect(int teamNo, int playerId)
 {
 	effect_type returnVal = NONE_EFFECT;
 
-	effectQMutex.lock();
-	if(effectQ->size() != 0)
+	int index = teamNo*2 + playerId - 1;
+
+	effectQMutex[index].lock();
+	if(effectQ[index]->size() != 0)
 	{
-		returnVal = effectQ->front();
-		effectQ->pop();
+		returnVal = effectQ[index]->front();
+		effectQ[index]->pop();
 	}
-	effectQMutex.unlock();
+	effectQMutex[index].unlock();
 
 	return returnVal;
 }

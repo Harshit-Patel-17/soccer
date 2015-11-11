@@ -115,7 +115,7 @@ class Game
 	int myPlayerTeam;
 	int myPlayerId;
 	State *state;
-	std::queue<effect_type> *effectQ;
+	std::queue<effect_type> *effectQ[3];
 	std::queue<Control> *controlQ;
 	OnlinePlayers *onlinePlayers;
 	char ip[16];
@@ -158,7 +158,7 @@ public:
 	void insertControl(Control control);
 	Control removeControl();
 	void insertEffect(effect_type type);
-	effect_type removeEffect();
+	effect_type removeEffect(int teamNo, int playerId);
 	void draw();
 	int getTeam1Goals();
 	int getTeam2Goals();

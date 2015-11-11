@@ -120,12 +120,12 @@ void Player::moveForward()
 	}
 	else
 	{
-		cout<<pos_x<<" "<<pos_y<<endl;
+		//cout<<pos_x<<" "<<pos_y<<endl;
 		pos_x = pos_x + mobility * cos(angle * 3.1415 / 180);
 		pos_y = pos_y + mobility * sin(angle * 3.1415 / 180);
-		cout<<angle<<" "<<mobility * cos(angle * 3.1415 / 180)<<" "<<mobility * sin(angle * 3.1415 / 180)<<endl;
-		cout<<mobility<<endl;
-		cout<<pos_x<<" "<<pos_y<<endl;
+		//cout<<angle<<" "<<mobility * cos(angle * 3.1415 / 180)<<" "<<mobility * sin(angle * 3.1415 / 180)<<endl;
+		//cout<<mobility<<endl;
+		//cout<<pos_x<<" "<<pos_y<<endl;
 	}
 
 	if(pos_x > maxX)
