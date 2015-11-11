@@ -67,8 +67,11 @@ struct OnlinePlayers
 	}
 };
 
+enum effect_type {SHOOT_EFFECT, NONE_EFFECT};
+
 struct State
 {
+	effect_type effectType;
 	float timeSpent;
 	Player Team1[PLAYERS_PER_TEAM];
 	Player Team2[PLAYERS_PER_TEAM];
@@ -112,6 +115,7 @@ class Game
 	int myPlayerTeam;
 	int myPlayerId;
 	State *state;
+	std::queue<effect_type> *effectQ;
 	std::queue<Control> *controlQ;
 	OnlinePlayers *onlinePlayers;
 	char ip[16];
@@ -143,6 +147,8 @@ public:
 	void applyControl(Control control);
 	void insertControl(Control control);
 	Control removeControl();
+	void insertEffect(effect_type type);
+	effect_type removeEffect();
 	void draw();
 	int getTeam1Goals();
 	int getTeam2Goals();

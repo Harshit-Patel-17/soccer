@@ -20,7 +20,8 @@
 using namespace std;
 
 std::mutex stateMutex;
-std::mutex queueMutex;
+std::mutex controlQMutex;
+std::mutex effectQMutex;
 
 std::string getIp() {
 
@@ -224,6 +225,7 @@ void communicate(int newSockFd, Game *game)
 			packet.type = STATE;
 			stateMutex.lock();
 			packet.state = *(game->state);
+			packet.state.effectType = game->removeEffect();
 			stateMutex.unlock();
 			count = write(newSockFd, (char *)&packet, sizeof(Packet));
 			persistent = true;
@@ -331,6 +333,8 @@ Game::Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPla
 		myPlayer = team1[myPlayerId];
 	else
 		myPlayer = team2[myPlayerId];
+
+	effectQ = new std::queue<effect_type>;
 
 	controlQ = new std::queue<Control>;
 
@@ -645,6 +649,7 @@ void Game::setBallFree()
 void shootTimer(int ms, Player *player, Ball *ball, Game *game)
 {
 	std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+	game->insertEffect(SHOOT_EFFECT);
 	game->playShootEffect();
 	player->shoot(ball->getShootAngle(), ball->getShootPower());
 	ball->setIsShoot(false);
@@ -778,6 +783,17 @@ void Game::applyState(State *state)
 	stateMutex.lock();
 	//int team = possessorPlayerTeam();
 	//int id = possessorPlayerId();
+
+	switch(state->effectType)
+	{
+		case NONE_EFFECT:
+			break;
+
+		case SHOOT_EFFECT:
+			playShootEffect();
+			break;
+	}
+
 	timeSpent = state->timeSpent;
 	*ball = state->ball;
 	this->state->ball = state->ball;
@@ -816,9 +832,9 @@ void Game::applyControl(Control control)
 
 void Game::insertControl(Control control)
 {
-	queueMutex.lock();
+	controlQMutex.lock();
 	controlQ->push(control);
-	queueMutex.unlock();
+	controlQMutex.unlock();
 }
 
 Control Game::removeControl()
@@ -828,15 +844,37 @@ Control Game::removeControl()
 	control.teamNo = myPlayerTeam;
 	control.playerId = myPlayerId;
 
-	queueMutex.lock();
+	controlQMutex.lock();
 	if(controlQ->size() != 0)
 	{
 		control = controlQ->front();
 		controlQ->pop();
 	}
-	queueMutex.unlock();
+	controlQMutex.unlock();
 
 	return control;
+}
+
+void Game::insertEffect(effect_type type)
+{
+	effectQMutex.lock();
+	effectQ->push(type);
+	effectQMutex.unlock();
+}
+
+effect_type Game::removeEffect()
+{
+	effect_type returnVal = NONE_EFFECT;
+
+	effectQMutex.lock();
+	if(effectQ->size() != 0)
+	{
+		returnVal = effectQ->front();
+		effectQ->pop();
+	}
+	effectQMutex.unlock();
+
+	return returnVal;
 }
 
 void Game::draw()
