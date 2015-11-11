@@ -153,6 +153,7 @@ public:
 	void shoot(int playerTeam, int playerId);
 	void pass(int playerTeam, int playerId);
 	void join(char *ip, int port);
+	void addPlayer(char *ip, int port, int teamNo, int playerId);
 	void applyState(State *state);
 	void applyControl(Control control);
 	void insertControl(Control control);

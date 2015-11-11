@@ -214,7 +214,8 @@ void communicate(int newSockFd, Game *game)
 		{
 		case CONNECT:
 			//std::cout << "Connect packet received." << std::endl;
-			game->onlinePlayers->add(packet.ip,  packet.port, packet.teamNo, packet.playerId);
+			game->addPlayer(packet.ip, packet.port, packet.teamNo, packet.playerId);
+			//game->onlinePlayers->add(packet.ip,  packet.port, packet.teamNo, packet.playerId);
 			strcpy(buffer, "Connect packet received");
 			count = write(newSockFd, buffer, strlen(buffer));
 			break;
@@ -225,7 +226,7 @@ void communicate(int newSockFd, Game *game)
 			packet.type = STATE;
 			stateMutex.lock();
 			packet.state = *(game->state);
-			packet.state.effectType = game->removeEffect(packet.teamNo, packet.playerId);
+			packet.state.effectType = game->removeEffect(packet.control.teamNo, packet.control.playerId);
 			stateMutex.unlock();
 			count = write(newSockFd, (char *)&packet, sizeof(Packet));
 			persistent = true;
@@ -893,7 +894,7 @@ void Game::computeNewPositionForOutfieldBotPlayers()
 
 			//cout<<myPlayerTeam<<" "<<isMyTeamInPossession(myPlayerTeam)<<endl;
 
-			if(isMyTeamInPossession() && team == myPlayerTeam)
+			if(isMyTeamInPossession() && team == myPlayerTeam && myPlayerTeam == 0)
 			{
 				if(teamMate->InPossession())
 				{
@@ -1320,6 +1321,18 @@ void Game::join(char *ip, int port)
 	controlSenderThread.detach();
 }
 
+void Game::addPlayer(char *ip, int port, int teamNo, int playerId)
+{
+	Player *player;
+
+	if(teamNo == 0)
+		player = team1[playerId];
+	else
+		player = team2[playerId];
+
+	onlinePlayers->add(ip, port, teamNo, playerId);
+	player->setIsBot(false);
+}
 
 void Game::applyState(State *state)
 {
