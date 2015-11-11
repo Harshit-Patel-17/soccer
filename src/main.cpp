@@ -463,17 +463,22 @@ int main(int argc, char *argv[])
 
     if(argc == 2)
     {
-    	game = new Game("127.0.0.1", atoi(argv[1]), CREATOR, 0, 0);
+    	game = new Game(getIp().c_str(), atoi(argv[1]), CREATOR, 0, 0);
     	game->startServer();
     }
     else if(argc == 3)
     {
     	int teamNo, playerId;
+    	char IP[16];
+    	cout << "Player team (0/1): ";
     	std::cin >> teamNo;
+    	cout << "Player Id (0/1): ";
     	std::cin >> playerId;
-    	game = new Game("127.0.0.1", atoi(argv[1]), JOINER, teamNo, playerId);
+    	cout << "Creator IP: ";
+    	cin >> IP;
+    	game = new Game(getIp().c_str(), atoi(argv[1]), JOINER, teamNo, playerId);
     	game->startServer();
-    	game->join("127.0.0.1", atoi(argv[2]));
+    	game->join(IP, atoi(argv[2]));
     }
     else
     {

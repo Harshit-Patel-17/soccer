@@ -174,4 +174,6 @@ public:
 	friend void communicate(int newSockFd, Game *game);
 };
 
+std::string getIp();
+
 #endif /* INCLUDE_GAME_H_ */
