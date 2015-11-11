@@ -17,6 +17,7 @@
 #include <iostream>
 #include <string.h>
 #include <queue>
+#include <time.h>
 #include "../include/Player.h"
 #include "../include/Ball.h"
 #include "../include/Ground.h"
@@ -26,6 +27,7 @@
 #define PLAYERS_PER_TEAM 3
 #define ANGLE_ROTATION 2
 #define SHOOT_RATE 0.25
+#define ZERO_THRESHOLD 1
 
 struct PlayerDetails
 {
@@ -67,6 +69,7 @@ struct OnlinePlayers
 
 struct State
 {
+	float timeSpent;
 	Player Team1[PLAYERS_PER_TEAM];
 	Player Team2[PLAYERS_PER_TEAM];
 	Ball ball;
@@ -114,6 +117,8 @@ class Game
 	char ip[16];
 	int port;
 	game_type type;
+	clock_t startTime;
+	float timeSpent;
 public:
 	Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPlayerId);
 	virtual ~Game();
@@ -141,6 +146,8 @@ public:
 	void draw();
 	int getTeam1Goals();
 	int getTeam2Goals();
+	float getTimeSpent();
+	float computeTimeSpent();
 
 	friend void serverRunner(Game *game);
 	friend bool sendPacket(Game *game, Packet *packet, char *destIp, int destPort);

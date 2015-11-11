@@ -288,7 +288,7 @@ Game::Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPla
 
 	soccer = new Soccer();
 	ground = new Ground(GROUND_WIDTH, GROUND_HEIGHT, 0, 0, soccer);
-	ball = new Ball(GROUND_WIDTH/2 + 2.0, GROUND_HEIGHT/2, 0, soccer, ground);
+	ball = new Ball(GROUND_WIDTH/2, GROUND_HEIGHT/2, 0, soccer, ground);
 
 	state = new State;
 
@@ -305,7 +305,7 @@ Game::Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPla
 		if(i==2) //goalkeeper
 		{
 			team1[i] = new Player(0, 2, 50.0f, GROUND_HEIGHT/2, 0, soccer, ground, ball);
-			team2[i] = new Player(0, 2, 334.0f, GROUND_HEIGHT/2, 0, soccer, ground, ball);
+			team2[i] = new Player(1, 2, 334.0f, GROUND_HEIGHT/2, 0, soccer, ground, ball);
 		}
 		else if(i==0)
 		{
@@ -339,6 +339,10 @@ Game::Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPla
 	this->type = type;
 
 	this->team1Goals = this->team2Goals = 0;
+
+	this->startTime = clock();
+
+	this->timeSpent = 0;
 }
 
 Game::~Game() {
@@ -506,8 +510,8 @@ void Game::moveBall()
 	if(fabs(dy_unit) >= Y_CHANGE_THRESHOLD
 			&& newY > GK_MIN_Y && newY < GK_MAX_Y)
 	{
-		//team2[2]->positionGoalkeeper();
-		//team1[2]->positionGoalkeeper();
+		team2[2]->positionGoalkeeper();
+		team1[2]->positionGoalkeeper();
 	}
 	else
 	{
@@ -542,6 +546,9 @@ void Game::applyBallDeflection(float oldX, float oldY, float newX, float newY)
 			}
 			dist = sqrt(dx*dx + dy*dy);
 
+			if(dist < ZERO_THRESHOLD)
+				return;
+
 			if(dist < 2*HIT_THRESHOLD)
 			{
 				float ballAngle = ball->getAngle() * 3.1415 / 180;
@@ -549,9 +556,14 @@ void Game::applyBallDeflection(float oldX, float oldY, float newX, float newY)
 				if(ballDirection < 0)
 					continue;
 
-				theta = atan(dy/dx);
-				if(dx < 0)
-					theta = 3.1415 + theta;
+				if(dx < ZERO_THRESHOLD && dx > -ZERO_THRESHOLD/2)
+					theta = (dy > 0) ? 3.1415/2 : -3.1415/2;
+				else
+				{
+					theta = atan(dy/dx);
+					if(dx < 0)
+						theta = 3.1415 + theta;
+				}
 
 				float cost = cos(theta);
 				float sint = sin(theta);
@@ -565,9 +577,14 @@ void Game::applyBallDeflection(float oldX, float oldY, float newX, float newY)
 				float new_dx = x - newX;
 				float new_dy = y - newY;
 
-				theta = atan(new_dy / new_dx);
-				if(new_dx < 0)
-					theta = 3.1415 + theta;
+				if(new_dx < ZERO_THRESHOLD && new_dx > -ZERO_THRESHOLD)
+					theta = (new_dy > 0) ? 3.1415/2 : -3.1415/2;
+				else
+				{
+					theta = atan(new_dy / new_dx);
+					if(new_dx < 0)
+						theta = 3.1415 + theta;
+				}
 
 				ball->setAngle(theta * 180 / 3.1415);
 				return;
@@ -616,9 +633,9 @@ void Game::setBallFree()
 {
 	for(int i = 0; i < PLAYERS_PER_TEAM; i++)
 	{
-		if(team1[i]->InPossession())
+		//if(team1[i]->InPossession())
 			team1[i]->release();
-		if(team1[i]->InPossession())
+		//if(team1[i]->InPossession())
 			team2[i]->release();
 	}
 }
@@ -756,9 +773,9 @@ void Game::join(char *ip, int port)
 void Game::applyState(State *state)
 {
 	stateMutex.lock();
-	int team = possessorPlayerTeam();
-	int id = possessorPlayerId();
-
+	//int team = possessorPlayerTeam();
+	//int id = possessorPlayerId();
+	timeSpent = state->timeSpent;
 	*ball = state->ball;
 	this->state->ball = state->ball;
 
@@ -838,6 +855,7 @@ void Game::draw()
 	ground->drawGoals();
 
 	stateMutex.lock();
+	state->timeSpent = computeTimeSpent();
 	state->ball = *ball;
 
 	for(int i = 0; i < PLAYERS_PER_TEAM; i++)
@@ -846,4 +864,18 @@ void Game::draw()
 		state->Team2[i] = *(team2[i]);
 	}
 	stateMutex.unlock();
+}
+
+float Game::getTimeSpent()
+{
+	return timeSpent;
+}
+
+float Game::computeTimeSpent()
+{
+	clock_t endTime = clock();
+	float time_spent = (float)(endTime - startTime) / CLOCKS_PER_SEC;
+	time_spent = floorf(time_spent * 100) / 100 - 0.40;
+	time_spent *= 100;
+	return time_spent;
 }

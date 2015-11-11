@@ -311,8 +311,6 @@ void Ball::updateShootAngle(float amount, float towards)
 	towards = (towards + 360) - int((towards + 360) / 360) * 360;
 	shootAngle = (shootAngle + 360) - int((shootAngle + 360) / 360) * 360;
 
-	std::cout << shootAngle << " " << towards << std::endl;
-
 	float clockWiseAngle, antiClockWiseAngle;
 
 	if(shootAngle >= towards)

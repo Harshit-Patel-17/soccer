@@ -263,87 +263,20 @@ void handleSpecialInput(int key, int x, int y)
     {
         case GLUT_KEY_RIGHT:
         	keysPressed[RIGHT_KEY] = true;
-        	/*if(keysPressed[2])
-        	{
-        		control.angle = 45;
-        		//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 45);
-        	}
-        	else if(keysPressed[3])
-        	{
-        		control.angle = 315;
-        		//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 315);
-        	}
-        	else
-        	{
-        		control.angle = 0;
-        		//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 0);
-        	}*/
             break;
 
         case GLUT_KEY_LEFT:
         	keysPressed[LEFT_KEY] = true;
-        	/*if(keysPressed[2])
-			{
-        		control.angle = 135;
-        		//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 135);
-			}
-			else if(keysPressed[3])
-			{
-				control.angle = 225;
-				//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 225);
-			}
-			else
-			{
-				control.angle = 180;
-				//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 180);
-			}*/
             break;
 
         case GLUT_KEY_UP:
         	keysPressed[UP_KEY] = true;
-        	/*if(keysPressed[0])
-			{
-        		control.angle = 45;
-        		//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 45);
-			}
-			else if(keysPressed[1])
-			{
-				control.angle = 135;
-				//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 135);
-			}
-			else
-			{
-				control.angle = 90;
-				//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 90);
-			}*/
             break;
 
         case GLUT_KEY_DOWN:
         	keysPressed[DOWN_KEY] = true;
-        	/*if(keysPressed[0])
-			{
-        		control.angle = 315;
-        		//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 315);
-			}
-			else if(keysPressed[1])
-			{
-				control.angle = 225;
-				//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 225);
-			}
-			else
-			{
-				control.angle = 270;
-				//game->movePlayer(game->getMyPlayerTeam(), game->getMyPlayerId(), 270);
-			}*/
             break;
     }
-
-    /*game->updateShootAngle(ANGLE_ROTATION, control.angle, game->getMyPlayerTeam(), game->getMyPlayerId());
-
-    if(game->getType() == CREATOR)
-    	game->movePlayer(control.teamNo, control.playerId, control.angle);
-    else
-    	game->insertControl(control);*/
 }
 
 void handleKeyUp(unsigned char key, int x, int y)
@@ -458,10 +391,15 @@ void showScoreAndTime()
 {
 	string message = "TEAM1 " + std::to_string(game->getTeam1Goals()) + "-" +
 			std::to_string(game->getTeam2Goals()) + " TEAM2 ";
-	endTime = clock();
-	float time_spent = (float)(endTime - startTime) / CLOCKS_PER_SEC;
-	time_spent = floorf(time_spent * 100) / 100 - 0.40;
-	time_spent *= 100;
+	float time_spent;
+	if(game->getType() == CREATOR)
+		time_spent = game->computeTimeSpent();
+	else
+		time_spent = game->getTimeSpent();
+	//endTime = clock();
+	//float time_spent = (float)(endTime - startTime) / CLOCKS_PER_SEC;
+	//time_spent = floorf(time_spent * 100) / 100 - 0.40;
+	//time_spent *= 100;
 	int minutes = ((int)time_spent)/60;
 	int seconds = ((int)time_spent)%60;
 	if(seconds < 10)
@@ -506,9 +444,8 @@ int main(int argc, char *argv[])
 
 	for(int i=0;i<4;i++) keysPressed[i] = false;
 
-	startTime = clock();
 	glutDisplayFunc(drawScene);
-	//glutIgnoreKeyRepeat(1);
+	glutIgnoreKeyRepeat(1);
 	glutKeyboardFunc(handleKeyPress);
 	glutKeyboardUpFunc(handleKeyUp);
 	glutSpecialFunc(handleSpecialInput);
