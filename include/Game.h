@@ -112,6 +112,15 @@ class Game
 	char ip[16];
 	int port;
 	game_type type;
+	void whenNotInPossessionStrategy(int teamId, int playerId);
+	void whenInPossessionStrategy(int teamId, int playerId);
+	void whenOpponentInPossessionStrategy(int teamId, int playerId);
+	bool goalKeeperMoreTowardsFirstBar(int teamId, Player *goalkeeper);
+	bool isPlayerMovingTowardsGoal(Player *player, int teamId, int playerId, pair<pair<float,float>, pair<float,float> > goalPos);
+	bool isPlayerMovingTowardsOwnGoal(Player *player, int teamId, int playerId, pair<pair<float,float>, pair<float,float> > goalPos);
+	bool playerInDBox(Player *player, int teamId, int playerId, pair<pair<float,float>, pair<float,float> > goalPos);
+	bool isOpponentNearby(Player *player, int teamId, int playerId);
+	bool isTeamMateInABetterPositionToScore(Player *player, Player *teamMate, int teamId, int playerId, pair<pair<float,float>, pair<float,float> > goalPos);
 public:
 	Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPlayerId);
 	virtual ~Game();
@@ -124,6 +133,7 @@ public:
 	void moveBall();
 	void applyBallDeflection(float oldX, float oldY, float newX, float newY);
 	bool isBallInPossession();
+	bool isMyTeamInPossession();
 	int possessorPlayerTeam();
 	int possessorPlayerId();
 	void setBallFree(); //No possession by any player
@@ -137,6 +147,7 @@ public:
 	void draw();
 	int getTeam1Goals();
 	int getTeam2Goals();
+	void computeNewPositionForOutfieldBotPlayers();
 
 	friend void serverRunner(Game *game);
 	friend bool sendPacket(Game *game, Packet *packet, char *destIp, int destPort);

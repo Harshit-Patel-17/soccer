@@ -92,7 +92,7 @@ void Ball::updatePosition()
 	float dx_unit = cos(angle * 3.1415 / 180);
 	float dy_unit = sin(angle * 3.1415 / 180);
 
-	if(u*u + 2*a*d < 0)
+	if(u*u + 2*a*d <= 0)
 		return;
 
 	float v = sqrt(u*u + 2*a*d);

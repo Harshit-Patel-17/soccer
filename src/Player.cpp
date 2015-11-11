@@ -51,7 +51,7 @@ Player::Player()
 
 }
 
-Player::Player(int texture, float mobility, float pos_x, float pos_y, float angle, Soccer *soccer, Ground *ground, Ball *ball)
+Player::Player(int texture, float mobility, float pos_x, float pos_y, float angle, Soccer *soccer, Ground *ground, bool isBot, Ball *ball)
 {
 	this->texture = texture;
 	this->totalPostures = soccer->getTotalPlayerPostures(texture);
@@ -64,6 +64,7 @@ Player::Player(int texture, float mobility, float pos_x, float pos_y, float angl
 	this->soccer = soccer;
 	this->ground = ground;
 	this->possession = false;
+	this->isBot = isBot;
 }
 
 Player::~Player() {
@@ -102,7 +103,8 @@ void Player::moveForward()
 		return;
 	stateCounter = 0;
 	posture = (posture + 2) % totalPostures;
-
+	//if(playerId == 1 && playerTeam == 1)
+	//cout<<"here2";
 	if(possession)
 	{
 		float dx = ball->getPosX() - pos_x;
@@ -118,8 +120,12 @@ void Player::moveForward()
 	}
 	else
 	{
+		cout<<pos_x<<" "<<pos_y<<endl;
 		pos_x = pos_x + mobility * cos(angle * 3.1415 / 180);
 		pos_y = pos_y + mobility * sin(angle * 3.1415 / 180);
+		cout<<angle<<" "<<mobility * cos(angle * 3.1415 / 180)<<" "<<mobility * sin(angle * 3.1415 / 180)<<endl;
+		cout<<mobility<<endl;
+		cout<<pos_x<<" "<<pos_y<<endl;
 	}
 
 	if(pos_x > maxX)
@@ -286,6 +292,16 @@ void Player::release()
 bool Player::InPossession()
 {
 	return possession;
+}
+
+void Player::setIsBot(bool isBot)
+{
+	this->isBot = isBot;
+}
+
+bool Player::getIsBot()
+{
+	return this->isBot;
 }
 
 void Player::draw()
