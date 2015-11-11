@@ -32,6 +32,7 @@ class Player
 	float pos_y;
 	float angle;
 	bool isBot;
+	int stateCounter;
 	Ball *ball;
 	Ground *ground;
 	Soccer *soccer;

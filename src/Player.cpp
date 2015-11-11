@@ -65,6 +65,7 @@ Player::Player(int texture, float mobility, float pos_x, float pos_y, float angl
 	this->ground = ground;
 	this->possession = false;
 	this->isBot = isBot;
+	this->stateCounter = 0;
 }
 
 Player::~Player() {
@@ -98,7 +99,6 @@ void Player::moveForward()
 	float minY = ground->getMinY();
 	float maxY = ground->getMaxY();
 
-	static int stateCounter = 0;
 	if(++stateCounter != 2)
 		return;
 	stateCounter = 0;
