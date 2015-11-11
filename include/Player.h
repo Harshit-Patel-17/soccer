@@ -31,6 +31,7 @@ class Player
 	float pos_x;
 	float pos_y;
 	float angle;
+	bool isBot;
 	Ball *ball;
 	Ground *ground;
 	Soccer *soccer;
@@ -40,7 +41,7 @@ class Player
 	float max(float x, float y);
 public:
 	Player();
-	Player(int texture, float mobility, float pos_x, float pos_y, float angle, Soccer *soccer, Ground *ground, Ball *ball = NULL);
+	Player(int texture, float mobility, float pos_x, float pos_y, float angle, Soccer *soccer, Ground *ground, bool isBot, Ball *ball = NULL);
 	virtual ~Player();
 
 	void moveForward();
@@ -65,6 +66,8 @@ public:
 	void release();
 	bool InPossession();
 	void draw();
+	void setIsBot(bool isBot);
+	bool getIsBot();
 
 	void operator=(Player& player);
 };

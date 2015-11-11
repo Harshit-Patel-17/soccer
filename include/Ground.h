@@ -9,6 +9,9 @@
 #define INCLUDE_GROUND_H_
 
 #include "../include/Soccer.h"
+#include <iostream>
+
+using namespace std;
 
 class Ground {
 	//GLuint texture;
@@ -22,6 +25,10 @@ class Ground {
 	float goalPosY;
 	float goalWidth;
 	float goalDepth;
+	pair<pair<float,float>, pair<float, float> > team1GoalPos;
+	pair<pair<float,float>, pair<float, float> > team2GoalPos;
+	pair<pair<float,float>, pair<float, float> > team1DBox;
+	pair<pair<float,float>, pair<float, float> > team2DBox;
 
 	void applyRotation(float angle, float x, float y);
 	void restoreRotation();
@@ -40,6 +47,10 @@ public:
 	float getGroundWidth();
 	float getGoalWidth();
 	float getGoalDepth();
+	pair<pair<float,float>, pair<float, float> > getTeam1GoalPos();
+	pair<pair<float,float>, pair<float, float> > getTeam2GoalPos();
+	pair<pair<float,float>, pair<float, float> > getTeam1DBox();
+	pair<pair<float,float>, pair<float, float> > getTeam2DBox();
 };
 
 #endif /* INCLUDE_GROUND_H_ */

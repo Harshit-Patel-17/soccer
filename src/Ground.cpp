@@ -101,6 +101,8 @@ void Ground::drawGoals()
 	int x = bottomLeftX + 0.06 * width;
 	int y = goalPosY;
 
+	this->team1GoalPos = make_pair(make_pair(x + goalWidth/2, y - goalHeight/2),make_pair(x + goalWidth/2, y + goalHeight/2));
+
 	glBegin(GL_QUADS);
 		glTexCoord2f(0, 0); glVertex3f(x - goalWidth/2, y - goalHeight/2, 0);
 		glTexCoord2f(1, 0); glVertex3f(x + goalWidth/2, y - goalHeight/2, 0);
@@ -111,6 +113,8 @@ void Ground::drawGoals()
 	x = bottomLeftX + 0.94 * width;
 	y = goalPosY;
 
+	this->team2GoalPos = make_pair(make_pair(x + goalWidth/2, y - goalHeight/2),make_pair(x + goalWidth/2, y + goalHeight/2));
+
 	applyRotation(180, x, y);
 	glBegin(GL_QUADS);
 		glTexCoord2f(0, 0); glVertex3f(x - goalWidth/2, y - goalHeight/2, 0);
@@ -119,6 +123,16 @@ void Ground::drawGoals()
 		glTexCoord2f(0, 1); glVertex3f(x - goalWidth/2, y + goalHeight/2, 0);
 	glEnd();
 	restoreRotation();
+
+	float x1 = bottomLeftX + 0.25 * width;
+	float y1 = bottomLeftY + 0.25 * height;
+
+	float x2 = bottomLeftX + 0.25 * width;
+	float y2 = bottomLeftY + 0.75 * height;
+	this->team1DBox = make_pair(make_pair(x1,y1), make_pair(x2,y2));
+
+	x1 = x2 = bottomLeftX + 0.75 * width;
+	this->team2DBox = make_pair(make_pair(x1,y1), make_pair(x2,y2));
 }
 
 float Ground::getGroundHeight()
@@ -144,4 +158,24 @@ float Ground::getGoalWidth()
 float Ground::getGoalDepth()
 {
 	return goalDepth;
+}
+
+pair<pair<float,float>, pair<float, float> > Ground::getTeam1GoalPos()
+{
+	return team1GoalPos;
+}
+
+pair<pair<float,float>, pair<float, float> > Ground::getTeam2GoalPos()
+{
+	return team2GoalPos;
+}
+
+pair<pair<float,float>, pair<float, float> > Ground::getTeam1DBox()
+{
+	return team1DBox;
+}
+
+pair<pair<float,float>, pair<float, float> > Ground::getTeam2DBox()
+{
+	return team2DBox;
 }
