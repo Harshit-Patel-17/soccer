@@ -343,6 +343,8 @@ Game::Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPla
 	this->startTime = clock();
 
 	this->timeSpent = 0;
+
+	playCrowdChant();
 }
 
 Game::~Game() {
@@ -640,9 +642,10 @@ void Game::setBallFree()
 	}
 }
 
-void shootTimer(int ms, Player *player, Ball *ball)
+void shootTimer(int ms, Player *player, Ball *ball, Game *game)
 {
 	std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+	game->playShootEffect();
 	player->shoot(ball->getShootAngle(), ball->getShootPower());
 	ball->setIsShoot(false);
 }
@@ -696,7 +699,7 @@ void Game::shoot(int playerTeam, int playerId)
 	ball->setShootAngle(player->getAngle());
 	ball->setShootPower(MIN_SHOOT_POWER);
 	ball->setIsShoot(true);
-	std::thread timer(shootTimer, 700, player, ball);
+	std::thread timer(shootTimer, 700, player, ball, this);
 	timer.detach();
 	//player->shoot();
 }
@@ -878,4 +881,14 @@ float Game::computeTimeSpent()
 	time_spent = floorf(time_spent * 100) / 100 - 0.40;
 	time_spent *= 100;
 	return time_spent;
+}
+
+void Game::playCrowdChant()
+{
+	Mix_PlayMusic(soccer->getCrowdChant(), -1);
+}
+
+void Game::playShootEffect()
+{
+	Mix_PlayChannel(-1, soccer->getShootEffect(), 0);
 }

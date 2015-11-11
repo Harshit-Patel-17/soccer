@@ -9,8 +9,7 @@
 #define INCLUDE_SOCCER_H_
 
 #include <SDL/SDL.h>
-#include <SDL/SDL_image.h>
-#include <SDL/SDL_endian.h>
+#include <SDL/SDL_mixer.h>
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include <SOIL/SOIL.h>
@@ -25,6 +24,8 @@ class Soccer
 	GLuint groundTex;
 	GLuint goalTex;
 	GLuint arrowTex;
+	Mix_Music *crowdChant;
+	Mix_Chunk *shootEffect;
 
 public:
 	Soccer();
@@ -37,6 +38,8 @@ public:
 	GLuint getGroundTex();
 	GLuint getGoalTex();
 	GLuint getArrowTex();
+	Mix_Music *getCrowdChant();
+	Mix_Chunk *getShootEffect();
 };
 
 #endif /* INCLUDE_SOCCER_H_ */

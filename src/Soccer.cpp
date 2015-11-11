@@ -79,6 +79,15 @@ Soccer::Soccer()
 			SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
 		);
 	}
+
+	Mix_OpenAudio(22050, MIX_DEFAULT_FORMAT, 2, 4096);
+	//Load crowd chant
+	crowdChant = Mix_LoadMUS("../res/music/crowdChant.mp3");
+	if(crowdChant == NULL)
+		std::cerr << "Music file could not be opened" << std::endl;
+
+	//Load shoot effect
+	shootEffect = Mix_LoadWAV("../res/music/shoot3.wav");
 }
 
 Soccer::~Soccer()
@@ -93,6 +102,11 @@ Soccer::~Soccer()
 		glDeleteTextures(1, &ballTex[i]);
 
 	glDeleteTextures(1, &groundTex);
+	glDeleteTextures(1, &goalTex);
+	glDeleteTextures(1, &arrowTex);
+	Mix_CloseAudio();
+	Mix_FreeChunk(shootEffect);
+	Mix_FreeMusic(crowdChant);
 }
 
 GLuint *Soccer::getPlayerTex(int player)
@@ -128,4 +142,14 @@ GLuint Soccer::getGoalTex()
 GLuint Soccer::getArrowTex()
 {
 	return arrowTex;
+}
+
+Mix_Music *Soccer::getCrowdChant()
+{
+	return crowdChant;
+}
+
+Mix_Chunk *Soccer::getShootEffect()
+{
+	return shootEffect;
 }

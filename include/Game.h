@@ -148,6 +148,8 @@ public:
 	int getTeam2Goals();
 	float getTimeSpent();
 	float computeTimeSpent();
+	void playCrowdChant();
+	void playShootEffect();
 
 	friend void serverRunner(Game *game);
 	friend bool sendPacket(Game *game, Packet *packet, char *destIp, int destPort);
