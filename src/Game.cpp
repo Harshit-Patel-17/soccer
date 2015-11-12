@@ -312,7 +312,7 @@ Game::Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPla
 		}
 		else if(i==0)
 		{
-			team1[i] = new Player(0, 2, GROUND_WIDTH/2, GROUND_HEIGHT/2, 0, soccer, ground, true, ball); // kickOff team player 1
+			team1[i] = new Player(0, 2, GROUND_WIDTH/2 - 10, GROUND_HEIGHT/2, 0, soccer, ground, true, ball); // kickOff team player 1
 			team2[i] = new Player(1, 2, GROUND_WIDTH/2 + 20.0, GROUND_HEIGHT/2, 0, soccer, ground, true, ball);
 		}
 		else
@@ -352,6 +352,56 @@ Game::Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPla
 	this->timeSpent = 0;
 
 	playCrowdChant();
+	isGoalSequenceRunning = false;
+	blowWhistle();
+}
+
+void Game::reset()
+{
+	ball->setPosX(GROUND_WIDTH/2);
+	ball->setPosY(GROUND_HEIGHT/2);
+	ball->setU(0);
+
+	state->ball = *ball;
+
+	for(int i = 0; i < PLAYERS_PER_TEAM; i++)
+	{
+
+		if(i==2) //goalkeeper
+		{
+			team1[i]->setPosX(50.0f);
+			team1[i]->setPosY(GROUND_HEIGHT/2);
+			team1[i]->setPosture(0);
+			team2[i]->setPosX(334.0f);
+			team2[i]->setPosY(GROUND_HEIGHT/2);
+			team2[i]->setPosture(0);
+		}
+		else if(i==0)
+		{
+			team1[i]->setPosX(GROUND_WIDTH/2 - 10);
+			team1[i]->setPosY(GROUND_HEIGHT/2);
+			team1[i]->setPosture(0);
+			team2[i]->setPosX(GROUND_WIDTH/2 + 20.0);
+			team2[i]->setPosY(GROUND_HEIGHT/2);
+			team2[i]->setPosture(0);
+		}
+		else
+		{
+			team1[i]->setPosX(GROUND_WIDTH/2 - 20.0);
+			team1[i]->setPosY(GROUND_HEIGHT/2 - 50.0);
+			team1[i]->setPosture(0);
+			team2[i]->setPosX(GROUND_WIDTH/2 + 20.0);
+			team2[i]->setPosY(GROUND_HEIGHT/2 - 50.0);
+			team2[i]->setPosture(0);
+		}
+
+		state->Team1[i] = *(team1[i]);
+		state->Team2[i] = *(team2[i]);
+	}
+
+	team1[0]->possess();
+	isGoalSequenceRunning = false;
+	blowWhistle();
 }
 
 Game::~Game() {
@@ -1018,6 +1068,7 @@ void Game::moveBall()
 
 	ball->updatePosition();
 
+	initiateGoalSequence(ball->isInGoal());
 
 	if(!(ball->isBallPassed()))
 		applyBallDeflection(oldX, oldY, newX, newY);
@@ -1202,16 +1253,16 @@ void Game::shoot(int playerTeam, int playerId)
 	else
 		player = team2[playerId];
 
-	if(ball->isOnShoot())
-		return;
-
 	if(!player->InPossession())
 		return;
 
+	if(ball->isOnShoot())
+		return;
+
+	ball->setIsShoot(true);
 	ball->setIsPass(false);
 	ball->setShootAngle(player->getAngle());
 	ball->setShootPower(MIN_SHOOT_POWER);
-	ball->setIsShoot(true);
 	std::thread timer(shootTimer, 700, player, ball, this);
 	timer.detach();
 	//player->shoot();
@@ -1295,14 +1346,56 @@ void Game::pass(int playerTeam, int playerId)
 	player->pass(playerTeam, playerId, destPlayer, destPlayerId, dest, src);
 }
 
+void Game::increaseTeam1Goals()
+{
+	team1Goals++;
+}
+
 int Game::getTeam1Goals()
 {
 	return team1Goals;
 }
 
+void Game::increaseTeam2Goals()
+{
+	team2Goals++;
+}
+
 int Game::getTeam2Goals()
 {
 	return team2Goals;
+}
+
+void goalSequenceTimer(Game *game)
+{
+	game->playCrowdCheer();
+	std::this_thread::sleep_for(std::chrono::seconds(5));
+	game->reset();
+}
+
+void Game::initiateGoalSequence(int goalState)
+{
+	if(goalState == -1)
+		return;
+
+	if(isGoalSequenceRunning)
+		return;
+
+	isGoalSequenceRunning = true;
+
+	switch(goalState)
+	{
+		case 0:
+			increaseTeam1Goals();
+			break;
+
+		case 1:
+			increaseTeam2Goals();
+			break;
+	}
+
+	std::thread timer(goalSequenceTimer, this);
+	timer.detach();
 }
 
 void Game::join(char *ip, int port)
@@ -1472,6 +1565,9 @@ void Game::draw()
 
 	ground->drawGoals();
 
+	if(isGoalSequenceRunning)
+		displayGoalWord();
+
 	stateMutex.lock();
 	state->timeSpent = computeTimeSpent();
 	state->ball = *ball;
@@ -1482,6 +1578,24 @@ void Game::draw()
 		state->Team2[i] = *(team2[i]);
 	}
 	stateMutex.unlock();
+}
+
+void Game::displayGoalWord()
+{
+	glBindTexture(GL_TEXTURE_2D, soccer->getGoalWordTex());
+
+	int width = 777 / 8;
+	int height = 389 / 8;
+	int pos_x = ball->getPosX();
+	int pos_y = ball->getPosY();
+	int dist = 50;
+
+	glBegin(GL_QUADS);
+		glTexCoord2f(0, 0); glVertex3f(pos_x - width/2, pos_y + dist - height/2, 0);
+		glTexCoord2f(1, 0); glVertex3f(pos_x + width/2, pos_y + dist - height/2, 0);
+		glTexCoord2f(1, 1); glVertex3f(pos_x + width/2, pos_y + dist + height/2, 0);
+		glTexCoord2f(0, 1); glVertex3f(pos_x - width/2, pos_y + dist + height/2, 0);
+	glEnd();
 }
 
 float Game::getTimeSpent()
@@ -1506,4 +1620,14 @@ void Game::playCrowdChant()
 void Game::playShootEffect()
 {
 	Mix_PlayChannel(-1, soccer->getShootEffect(), 0);
+}
+
+void Game::playCrowdCheer()
+{
+	Mix_PlayChannel(-1, soccer->getCrowdCheer(), 0);
+}
+
+void Game::blowWhistle()
+{
+	Mix_PlayChannel(-1, soccer->getWhistle(), 0);
 }

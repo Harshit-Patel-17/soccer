@@ -45,6 +45,7 @@ public:
 
 	void draw();
 	void updatePosition();
+	int isInGoal();
 	void hit(float u, float a, float angle);
 	float getPosX();
 	void setPosX(float pos_x);
@@ -55,6 +56,7 @@ public:
 	float getAngle();
 	void setAngle(float angle);
 	bool isOnShoot();
+	void setU(float u);
 	float getU();
 	float getA();
 	float getD();

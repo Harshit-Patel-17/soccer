@@ -205,6 +205,24 @@ void Ball::updatePosition()
 	}
 }
 
+int Ball::isInGoal()
+{
+	float minX = ground->getMinX();
+	float maxX = ground->getMaxX();
+	float lowerGoalY = ground->getGoalPosY() - ground->getGoalWidth()/2;
+	float upperGoalY = ground->getGoalPosY() + ground->getGoalWidth()/2;
+
+	if(pos_y >= lowerGoalY && pos_y <= upperGoalY)
+	{
+		if(pos_x < minX)
+			return 0;
+		if(pos_x > maxX)
+			return 1;
+	}
+
+	return -1;
+}
+
 void Ball::hit(float u, float a, float angle)
 {
 	this->u = u;
@@ -258,6 +276,11 @@ void Ball::operator=(Ball& ball)
 bool Ball::isOnShoot()
 {
 	return isShoot;
+}
+
+void Ball::setU(float u)
+{
+	this->u = u;
 }
 
 float Ball::getU()
