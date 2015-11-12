@@ -124,7 +124,11 @@ class Game
 	clock_t startTime;
 	float timeSpent;
 	bool isGoalSequenceRunning;
+	bool matchCompleted;
+	bool team1Won;
+	bool team2Won;
 	void displayGoalWord();
+	void displayResult();
 	void whenNotInPossessionStrategy(int teamId, int playerId);
 	void whenInPossessionStrategy(int teamId, int playerId);
 	void whenOpponentInPossessionStrategy(int teamId, int playerId);
@@ -169,6 +173,7 @@ public:
 	void increaseTeam2Goals();
 	int getTeam2Goals();
 	void initiateGoalSequence(int goalState);
+	void initiateEndSequence();
 	float getTimeSpent();
 	float computeTimeSpent();
 	void playCrowdChant();
@@ -176,6 +181,7 @@ public:
 	void playCrowdCheer();
 	void blowWhistle();
 	void computeNewPositionForOutfieldBotPlayers();
+	bool isMatchCompleted();
 
 	friend void serverRunner(Game *game);
 	friend bool sendPacket(Game *game, Packet *packet, char *destIp, int destPort);

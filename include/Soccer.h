@@ -25,6 +25,8 @@ class Soccer
 	GLuint goalTex;
 	GLuint arrowTex;
 	GLuint goalWordTex;
+	GLuint teamWonTex[2];
+	GLuint drawMatchTex;
 	Mix_Music *crowdChant;
 	Mix_Chunk *shootEffect;
 	Mix_Chunk *crowdCheer;
@@ -42,6 +44,8 @@ public:
 	GLuint getGoalTex();
 	GLuint getArrowTex();
 	GLuint getGoalWordTex();
+	GLuint *getTeamWonTex();
+	GLuint getDrawMatchTex();
 	Mix_Music *getCrowdChant();
 	Mix_Chunk *getShootEffect();
 	Mix_Chunk *getCrowdCheer();

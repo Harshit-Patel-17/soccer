@@ -352,8 +352,14 @@ Game::Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPla
 	this->timeSpent = 0;
 
 	playCrowdChant();
+
 	isGoalSequenceRunning = false;
+
 	blowWhistle();
+
+	matchCompleted = false;
+	team1Won = false;
+	team2Won = false;
 }
 
 void Game::reset()
@@ -1386,16 +1392,29 @@ void Game::initiateGoalSequence(int goalState)
 	switch(goalState)
 	{
 		case 0:
-			increaseTeam1Goals();
+			increaseTeam2Goals();
 			break;
 
 		case 1:
-			increaseTeam2Goals();
+			increaseTeam1Goals();
 			break;
 	}
 
 	std::thread timer(goalSequenceTimer, this);
 	timer.detach();
+}
+
+void Game::initiateEndSequence()
+{
+	if(matchCompleted)
+		return;
+
+	matchCompleted = true;
+
+	if(team1Goals > team2Goals)
+		team1Won = true;
+	else if(team2Goals > team1Goals)
+		team2Won = true;
 }
 
 void Game::join(char *ip, int port)
@@ -1549,7 +1568,13 @@ effect_type Game::removeEffect(int teamNo, int playerId)
 
 void Game::draw()
 {
-	glTranslatef(-ball->getPosX(), -ball->getPosY(), -200.0f);
+	if(matchCompleted)
+	{
+		glColor3f(0.3f, 0.3f, 0.3f);
+		glTranslatef(-GROUND_WIDTH/2, -GROUND_HEIGHT/2, -200.0f);
+	}
+	else
+		glTranslatef(-ball->getPosX(), -ball->getPosY(), -200.0f);
 
 	ground->draw();
 
@@ -1567,6 +1592,12 @@ void Game::draw()
 
 	if(isGoalSequenceRunning)
 		displayGoalWord();
+
+	if(matchCompleted)
+	{
+		glColor3f(1.0f, 1.0f, 1.0f);
+		displayResult();
+	}
 
 	stateMutex.lock();
 	state->timeSpent = computeTimeSpent();
@@ -1595,6 +1626,40 @@ void Game::displayGoalWord()
 		glTexCoord2f(1, 0); glVertex3f(pos_x + width/2, pos_y + dist - height/2, 0);
 		glTexCoord2f(1, 1); glVertex3f(pos_x + width/2, pos_y + dist + height/2, 0);
 		glTexCoord2f(0, 1); glVertex3f(pos_x - width/2, pos_y + dist + height/2, 0);
+	glEnd();
+}
+
+void Game::displayResult()
+{
+	int width, height, pos_x, pos_y;
+
+	pos_x = GROUND_WIDTH/2;
+	pos_y = GROUND_HEIGHT/2;
+
+	if(team1Won)
+	{
+		width = 469 / 8;
+		height = 118 / 8;
+		glBindTexture(GL_TEXTURE_2D, soccer->getTeamWonTex()[0]);
+	}
+	else if(team2Won)
+	{
+		width = 469 / 8;
+		height = 118 / 8;
+		glBindTexture(GL_TEXTURE_2D, soccer->getTeamWonTex()[1]);
+	}
+	else
+	{
+		width = 482 / 8;
+		height = 118 / 8;
+		glBindTexture(GL_TEXTURE_2D, soccer->getDrawMatchTex());
+	}
+
+	glBegin(GL_QUADS);
+		glTexCoord2f(0, 0); glVertex3f(pos_x - width/2, pos_y - height/2, 0);
+		glTexCoord2f(1, 0); glVertex3f(pos_x + width/2, pos_y - height/2, 0);
+		glTexCoord2f(1, 1); glVertex3f(pos_x + width/2, pos_y + height/2, 0);
+		glTexCoord2f(0, 1); glVertex3f(pos_x - width/2, pos_y + height/2, 0);
 	glEnd();
 }
 
@@ -1630,4 +1695,9 @@ void Game::playCrowdCheer()
 void Game::blowWhistle()
 {
 	Mix_PlayChannel(-1, soccer->getWhistle(), 0);
+}
+
+bool Game::isMatchCompleted()
+{
+	return matchCompleted;
 }

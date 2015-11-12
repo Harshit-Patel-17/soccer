@@ -407,6 +407,9 @@ void showScoreAndTime()
 	else
 		message += std::to_string(minutes) + ":" + std::to_string(seconds);
 	drawText(message,-3.5f, 1.7f);
+
+	if(minutes >= 1)
+		game->initiateEndSequence();
 }
 
 void drawScene()
