@@ -123,6 +123,12 @@ class Game
 	game_type type;
 	clock_t startTime;
 	float timeSpent;
+	bool isGoalSequenceRunning;
+	bool matchCompleted;
+	bool team1Won;
+	bool team2Won;
+	void displayGoalWord();
+	void displayResult();
 	void whenNotInPossessionStrategy(int teamId, int playerId);
 	void whenInPossessionStrategy(int teamId, int playerId);
 	void whenOpponentInPossessionStrategy(int teamId, int playerId);
@@ -136,6 +142,7 @@ public:
 	Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPlayerId);
 	virtual ~Game();
 
+	void reset();
 	void startServer();
 	game_type getType();
 	int getMyPlayerTeam();
@@ -161,13 +168,20 @@ public:
 	void insertEffect(effect_type type);
 	effect_type removeEffect(int teamNo, int playerId);
 	void draw();
+	void increaseTeam1Goals();
 	int getTeam1Goals();
+	void increaseTeam2Goals();
 	int getTeam2Goals();
+	void initiateGoalSequence(int goalState);
+	void initiateEndSequence();
 	float getTimeSpent();
 	float computeTimeSpent();
 	void playCrowdChant();
 	void playShootEffect();
+	void playCrowdCheer();
+	void blowWhistle();
 	void computeNewPositionForOutfieldBotPlayers();
+	bool isMatchCompleted();
 
 	friend void serverRunner(Game *game);
 	friend bool sendPacket(Game *game, Packet *packet, char *destIp, int destPort);

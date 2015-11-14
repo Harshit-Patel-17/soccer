@@ -80,6 +80,43 @@ Soccer::Soccer()
 		);
 	}
 
+	//Load goal texture
+	{
+		std::string filePath = "../res/misc/goalWord.png";
+		goalWordTex = SOIL_load_OGL_texture // load an image file directly as a new OpenGL texture
+		(
+			filePath.c_str(),
+			SOIL_LOAD_AUTO,
+			SOIL_CREATE_NEW_ID,
+			SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
+		);
+	}
+
+	//Load  team won texture
+	for(int i = 0; i < 2; i++)
+	{
+		std::string filePath = "../res/misc/team" + std::to_string(i+1) + "won.png";
+		teamWonTex[i] = SOIL_load_OGL_texture // load an image file directly as a new OpenGL texture
+		(
+			filePath.c_str(),
+			SOIL_LOAD_AUTO,
+			SOIL_CREATE_NEW_ID,
+			SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
+		);
+	}
+
+	//Load arrow texture
+	{
+		std::string filePath = "../res/misc/drawMatch.png";
+		drawMatchTex = SOIL_load_OGL_texture // load an image file directly as a new OpenGL texture
+		(
+			filePath.c_str(),
+			SOIL_LOAD_AUTO,
+			SOIL_CREATE_NEW_ID,
+			SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
+		);
+	}
+
 	Mix_OpenAudio(22050, MIX_DEFAULT_FORMAT, 2, 4096);
 	//Load crowd chant
 	crowdChant = Mix_LoadMUS("../res/music/crowdChant.mp3");
@@ -88,6 +125,12 @@ Soccer::Soccer()
 
 	//Load shoot effect
 	shootEffect = Mix_LoadWAV("../res/music/shoot3.wav");
+
+	//Load crowd cheer
+	crowdCheer = Mix_LoadWAV("../res/music/crowdCheer.wav");
+
+	//Load whistle
+	whistle = Mix_LoadWAV("../res/music/whistle.wav");
 }
 
 Soccer::~Soccer()
@@ -144,6 +187,21 @@ GLuint Soccer::getArrowTex()
 	return arrowTex;
 }
 
+GLuint Soccer::getGoalWordTex()
+{
+	return goalWordTex;
+}
+
+GLuint *Soccer::getTeamWonTex()
+{
+	return teamWonTex;
+}
+
+GLuint Soccer::getDrawMatchTex()
+{
+	return drawMatchTex;
+}
+
 Mix_Music *Soccer::getCrowdChant()
 {
 	return crowdChant;
@@ -152,4 +210,14 @@ Mix_Music *Soccer::getCrowdChant()
 Mix_Chunk *Soccer::getShootEffect()
 {
 	return shootEffect;
+}
+
+Mix_Chunk *Soccer::getCrowdCheer()
+{
+	return crowdCheer;
+}
+
+Mix_Chunk *Soccer::getWhistle()
+{
+	return whistle;
 }
