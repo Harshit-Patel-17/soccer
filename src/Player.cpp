@@ -304,12 +304,37 @@ bool Player::getIsBot()
 	return this->isBot;
 }
 
-void Player::draw()
+void Player::draw(weather_type weather)
 {
+	int width = 150 / 10;
+	int height = 65 / 10;
+	int shadows = 1;
+
+	if(weather == NIGHT)
+		shadows = 4;
+
+	float currentColor[4];
+	glGetFloatv(GL_CURRENT_COLOR, currentColor);
+
+	glColor4f(currentColor[0], currentColor[1], currentColor[2], 0.3f);
+	glBindTexture(GL_TEXTURE_2D, soccer->getShadowTex());
+	for(int i = 0; i < shadows; i++)
+	{
+		applyRotation(45 + i*90, pos_x, pos_y);
+		glBegin(GL_QUADS);
+			glTexCoord2f(0, 0); glVertex3f(pos_x, pos_y - height/2, 0);
+			glTexCoord2f(1, 0); glVertex3f(pos_x + width, pos_y - height/2, 0);
+			glTexCoord2f(1, 1); glVertex3f(pos_x + width, pos_y + height/2, 0);
+			glTexCoord2f(0, 1); glVertex3f(pos_x, pos_y + height/2, 0);
+		glEnd();
+		restoreRotation();
+	}
+
+	glColor4f(currentColor[0], currentColor[1], currentColor[2], currentColor[3]);
 	glBindTexture(GL_TEXTURE_2D, soccer->getPlayerTex(texture)[posture]);
 
-	int width = 88 / 5;
-	int height = 98 / 5;
+	width = 88 / 5;
+	height = 98 / 5;
 
 	applyRotation(angle + 90, pos_x, pos_y);
 	glBegin(GL_QUADS);
