@@ -291,7 +291,7 @@ void serverRunner(Game *game)
 	close(sockFd);
 }
 
-Game::Game(int port, game_type type)
+Game::Game(int port, game_type type, weather_type weather)
 {
 	this->ip[0] = 0;
 	strcpy(this->ip, getIp().c_str());
@@ -367,7 +367,14 @@ Game::Game(int port, game_type type)
 
 	this->timeSpent = 0;
 
-	playCrowdChant();
+	if(type == CREATOR)
+	{
+		if(weather == STORM)
+			playThunderEffect();
+		else
+			playCrowdChant();
+		isMusicRunning = true;
+	}
 
 	isGoalSequenceRunning = false;
 
@@ -378,6 +385,8 @@ Game::Game(int port, game_type type)
 	team2Won = false;
 
 	lastGoalScoringTeam = -1;
+
+	this->weather = weather;
 }
 
 void Game::reset(int teamInAttack)
@@ -1631,6 +1640,17 @@ void Game::applyState(State *state)
 	//int team = possessorPlayerTeam();
 	//int id = possessorPlayerId();
 
+	weather = state->weather;
+
+	if(!isMusicRunning)
+	{
+		if(state->weather == STORM)
+			playThunderEffect();
+		else
+			playCrowdChant();
+		isMusicRunning = true;
+	}
+
 	switch(state->effectType)
 	{
 		case NONE_EFFECT:
@@ -1757,8 +1777,8 @@ void Game::draw()
 
 	for(int i = 0; i < PLAYERS_PER_TEAM; i++)
 	{
-		team1[i]->draw();
-		team2[i]->draw();
+		team1[i]->draw(weather);
+		team2[i]->draw(weather);
 	}
 
 
@@ -1777,6 +1797,7 @@ void Game::draw()
 	}
 
 	stateMutex.lock();
+	state->weather = weather;
 	state->timeSpent = computeTimeSpent();
 	state->ball = *ball;
 
@@ -1859,6 +1880,11 @@ void Game::playCrowdChant()
 	Mix_PlayMusic(soccer->getCrowdChant(), -1);
 }
 
+void Game::playThunderEffect()
+{
+	Mix_PlayMusic(soccer->getThunderEffect(), -1);
+}
+
 void Game::playShootEffect()
 {
 	Mix_PlayChannel(-1, soccer->getShootEffect(), 0);
@@ -1887,4 +1913,9 @@ void Game::setLastGoalScoringTeam(int lastGoalScoringTeam)
 int Game::getLastGoalScoringTeam()
 {
 	return lastGoalScoringTeam;
+}
+
+weather_type Game::getWeather()
+{
+	return weather;
 }

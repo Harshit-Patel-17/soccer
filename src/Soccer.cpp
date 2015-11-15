@@ -30,6 +30,18 @@ Soccer::Soccer()
 		}
 	}
 
+	//Load shadow texture
+	{
+		std::string filePath = "../res/misc/shadow.png";
+		shadowTex = SOIL_load_OGL_texture // load an image file directly as a new OpenGL texture
+		(
+			filePath.c_str(),
+			SOIL_LOAD_AUTO,
+			SOIL_CREATE_NEW_ID,
+			SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
+		);
+	}
+
 	//Load ball textures
 	ballTex = new GLuint[ballTexSample];
 	for(int j = 0; j < ballTexSample; j++)
@@ -120,8 +132,11 @@ Soccer::Soccer()
 	Mix_OpenAudio(22050, MIX_DEFAULT_FORMAT, 2, 4096);
 	//Load crowd chant
 	crowdChant = Mix_LoadMUS("../res/music/crowdChant.mp3");
-	if(crowdChant == NULL)
-		std::cerr << "Music file could not be opened" << std::endl;
+
+	//Load thunder effect
+	thunderEffect = Mix_LoadMUS("../res/music/thunder.mp3");
+	if(thunderEffect == NULL)
+		std::cerr << "Error" << std::endl;
 
 	//Load shoot effect
 	shootEffect = Mix_LoadWAV("../res/music/shoot3.wav");
@@ -144,17 +159,31 @@ Soccer::~Soccer()
 	for(int i = 0; i < ballTexSample; i++)
 		glDeleteTextures(1, &ballTex[i]);
 
+	for(int i = 0; i < 2; i++)
+		glDeleteTextures(1, &teamWonTex[i]);
+
 	glDeleteTextures(1, &groundTex);
 	glDeleteTextures(1, &goalTex);
 	glDeleteTextures(1, &arrowTex);
+	glDeleteTextures(1, &shadowTex);
+	glDeleteTextures(1, &drawMatchTex);
 	Mix_CloseAudio();
 	Mix_FreeChunk(shootEffect);
 	Mix_FreeMusic(crowdChant);
+	Mix_FreeMusic(thunderEffect);
+	Mix_FreeChunk(shootEffect);
+	Mix_FreeChunk(crowdCheer);
+	Mix_FreeChunk(whistle);
 }
 
 GLuint *Soccer::getPlayerTex(int player)
 {
 	return playerTex[player];
+}
+
+GLuint Soccer::getShadowTex()
+{
+	return shadowTex;
 }
 
 int Soccer::getTotalPlayerPostures(int player)
@@ -205,6 +234,11 @@ GLuint Soccer::getDrawMatchTex()
 Mix_Music *Soccer::getCrowdChant()
 {
 	return crowdChant;
+}
+
+Mix_Music *Soccer::getThunderEffect()
+{
+	return thunderEffect;
 }
 
 Mix_Chunk *Soccer::getShootEffect()

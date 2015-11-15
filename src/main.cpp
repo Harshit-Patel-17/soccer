@@ -420,6 +420,27 @@ void drawScene()
     glLoadIdentity();
     glOrtho(0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 0.0f, 0.0f);
 
+    if(game->getWeather() == STORM)
+    {
+		static int i = 0;
+
+		if(i % 100 != 0 && i % 102 != 0)
+			glColor3f(0.5f, 0.5f, 0.5f);
+		else
+			glColor3f(1.0f, 1.0f, 1.0f);
+
+		i++;
+		if(i > 102) i = 0;
+    }
+    else if(game->getWeather() == DAY)
+    {
+    	glColor3f(1.0f, 1.0f, 0.7f);
+    }
+    else if(game->getWeather() == NIGHT)
+	{
+		glColor3f(1.0f, 1.0f, 1.0f);
+	}
+
     game->draw();
 
     showScoreAndTime();
@@ -464,15 +485,36 @@ int main(int argc, char *argv[])
 	glutTimerFunc(IO_TIMER, handleKeyboardInput, 0);
     glutTimerFunc(REFRESH_TIMER, update, 0);
 
+    weather_type weather;
     switch(choice)
     {
     case 1:
-    	game = new Game(atoi(argv[1]), CREATOR);
+    	std::cout << std::endl << "Select condition:" << std::endl;
+    	std::cout << "1. Day" << std::endl;
+    	std::cout << "2. Night" << std::endl;
+    	std::cout << "3. Storm" << std::endl;
+    	std::cout << "Enter choice(1-3): ";
+    	std::cin >> choice;
+    	switch(choice)
+    	{
+    	case 1:
+    		weather = DAY;
+    		break;
+
+    	case 2:
+    		weather = NIGHT;
+    		break;
+
+    	case 3:
+    		weather = STORM;
+    		break;
+    	}
+    	game = new Game(atoi(argv[1]), CREATOR, weather);
     	game->startServer();
     	break;
 
     case 2:
-    	game = new Game(atoi(argv[1]), JOINER);
+    	game = new Game(atoi(argv[1]), JOINER, DAY);
     	game->startServer();
     	game->setServerAddr();
     	game->query();

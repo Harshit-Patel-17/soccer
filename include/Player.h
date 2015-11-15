@@ -66,7 +66,7 @@ public:
 	void possess();
 	void release();
 	bool InPossession();
-	void draw();
+	void draw(weather_type weather);
 	void setIsBot(bool isBot);
 	bool getIsBot();
 

@@ -71,6 +71,7 @@ enum effect_type {SHOOT_EFFECT, NONE_EFFECT};
 
 struct State
 {
+	weather_type weather;
 	effect_type effectType;
 	float timeSpent;
 	Player Team1[PLAYERS_PER_TEAM];
@@ -129,7 +130,9 @@ class Game
 	bool matchCompleted;
 	bool team1Won;
 	bool team2Won;
+	bool isMusicRunning;
 	int lastGoalScoringTeam;
+	weather_type weather;
 	void displayGoalWord();
 	void displayResult();
 	void whenNotInPossessionStrategy(int teamId, int playerId);
@@ -142,7 +145,7 @@ class Game
 	bool isOpponentNearby(Player *player, int teamId, int playerId);
 	bool isTeamMateInABetterPositionToScore(Player *player, Player *teamMate, int teamId, int playerId, pair<pair<float,float>, pair<float,float> > goalPos);
 public:
-	Game(int port, game_type type);
+	Game(int port, game_type type, weather_type weather);
 	virtual ~Game();
 
 	void reset(int teamInAttack);
@@ -185,6 +188,7 @@ public:
 	float getTimeSpent();
 	float computeTimeSpent();
 	void playCrowdChant();
+	void playThunderEffect();
 	void playShootEffect();
 	void playCrowdCheer();
 	void blowWhistle();
@@ -192,6 +196,7 @@ public:
 	bool isMatchCompleted();
 	void setLastGoalScoringTeam(int lastGoalScoringTeam);
 	int getLastGoalScoringTeam();
+	weather_type getWeather();
 
 	friend void serverRunner(Game *game);
 	friend bool sendPacket(Game *game, Packet *packet, char *destIp, int destPort, string *response);
