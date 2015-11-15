@@ -408,7 +408,7 @@ void showScoreAndTime()
 		message += std::to_string(minutes) + ":" + std::to_string(seconds);
 	drawText(message,-3.5f, 1.7f);
 
-	if(minutes >= 1)
+	if(minutes >= 10)
 		game->initiateEndSequence();
 }
 
@@ -438,6 +438,12 @@ int main(int argc, char *argv[])
 	for(int i = 0; i < 7; i++)
 		keysPressed[i] = false;
 
+	int choice;
+	std::cout << "1. Create game" << std::endl;
+	std::cout << "2. Join game" << std::endl;
+	std::cout << "Enter choice(1/2): ";
+	std::cin >> choice;
+
     glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
 	glutInitWindowSize(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -458,16 +464,28 @@ int main(int argc, char *argv[])
 	glutTimerFunc(IO_TIMER, handleKeyboardInput, 0);
     glutTimerFunc(REFRESH_TIMER, update, 0);
 
-    //soccer = new Soccer();
-    //ground = new Ground(GROUND_WIDTH, GROUND_HEIGHT, 0, 0, soccer);
-    //ball = new Ball(GROUND_WIDTH/2, GROUND_HEIGHT/2, 0, soccer, ground);
-    //player = new Player(0, 2, GROUND_WIDTH/2, GROUND_HEIGHT/2, 0, soccer, ground, ball);
-    //ball->hit(4, -0.3, 0);
-
-    if(argc == 2)
+    switch(choice)
     {
-    	game = new Game(getIp().c_str(), atoi(argv[1]), CREATOR, 0, 0);
+    case 1:
+    	game = new Game(atoi(argv[1]), CREATOR);
     	game->startServer();
+    	break;
+
+    case 2:
+    	game = new Game(atoi(argv[1]), JOINER);
+    	game->startServer();
+    	game->setServerAddr();
+    	game->query();
+    	break;
+
+    default:
+    	std::cout << "Incorrect choice..." << std::endl;
+    	break;
+    }
+
+    /*if(argc == 2)
+    {
+
     }
     else if(argc == 3)
     {
@@ -479,15 +497,16 @@ int main(int argc, char *argv[])
     	std::cin >> playerId;
     	cout << "Creator IP: ";
     	cin >> IP;
-    	game = new Game(getIp().c_str(), atoi(argv[1]), JOINER, teamNo, playerId);
+    	game = new Game(atoi(argv[1]), JOINER, teamNo, playerId);
     	game->startServer();
-    	game->join(IP, atoi(argv[2]));
+    	game->query(IP,atoi(argv[2]));
+    	//game->join(IP, atoi(argv[2]));
     }
     else
     {
     	std::cout << "Incorrect number of arguments." << std::endl;
     	return -1;
-    }
+    }*/
 
 	glutMainLoop();
 

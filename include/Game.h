@@ -78,7 +78,7 @@ struct State
 	Ball ball;
 };
 
-enum packet_type {CONNECT, STATE, CONTROL};
+enum packet_type {CONNECT, STATE, CONTROL, QUERY};
 enum game_type {CREATOR, JOINER};
 enum control_type {MOVE, SHOOT, PASS, NONE};
 
@@ -115,11 +115,13 @@ class Game
 	int myPlayerTeam;
 	int myPlayerId;
 	State *state;
-	std::queue<effect_type> *effectQ[3];
+	std::queue<effect_type> *effectQ[4];
 	std::queue<Control> *controlQ;
 	OnlinePlayers *onlinePlayers;
 	char ip[16];
 	int port;
+	char serverIp[16];
+	int serverPort;
 	game_type type;
 	clock_t startTime;
 	float timeSpent;
@@ -127,6 +129,7 @@ class Game
 	bool matchCompleted;
 	bool team1Won;
 	bool team2Won;
+	int lastGoalScoringTeam;
 	void displayGoalWord();
 	void displayResult();
 	void whenNotInPossessionStrategy(int teamId, int playerId);
@@ -139,10 +142,11 @@ class Game
 	bool isOpponentNearby(Player *player, int teamId, int playerId);
 	bool isTeamMateInABetterPositionToScore(Player *player, Player *teamMate, int teamId, int playerId, pair<pair<float,float>, pair<float,float> > goalPos);
 public:
-	Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPlayerId);
+	Game(int port, game_type type);
 	virtual ~Game();
 
-	void reset();
+	void reset(int teamInAttack);
+	void selectPlayer();
 	void startServer();
 	game_type getType();
 	int getMyPlayerTeam();
@@ -159,8 +163,12 @@ public:
 	void updateShootPower(float amount, int playerTeam, int playerId);
 	void shoot(int playerTeam, int playerId);
 	void pass(int playerTeam, int playerId);
-	void join(char *ip, int port);
-	void addPlayer(char *ip, int port, int teamNo, int playerId);
+	void join();
+	void setServerAddr();
+	void query();
+	string makePlayerString(); //Indicates which players are bots and which are humans
+	void parseAndDisplayPlayerString(string playerString);
+	bool addPlayer(char *ip, int port, int teamNo, int playerId);
 	void applyState(State *state);
 	void applyControl(Control control);
 	void insertControl(Control control);
@@ -182,9 +190,11 @@ public:
 	void blowWhistle();
 	void computeNewPositionForOutfieldBotPlayers();
 	bool isMatchCompleted();
+	void setLastGoalScoringTeam(int lastGoalScoringTeam);
+	int getLastGoalScoringTeam();
 
 	friend void serverRunner(Game *game);
-	friend bool sendPacket(Game *game, Packet *packet, char *destIp, int destPort);
+	friend bool sendPacket(Game *game, Packet *packet, char *destIp, int destPort, string *response);
 	friend void controlSender(Game *game, char *destIp, int destPort);
 	friend void communicate(int newSockFd, Game *game);
 };
