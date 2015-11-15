@@ -511,16 +511,32 @@ bool Game::isPlayerMovingTowardsGoal(Player *player, int teamId, int playerId, p
 {
 	float dX = (goalPos.first).first - player->getPosX();
 	float dY = (goalPos.first).second - player->getPosY();
-	float angle1 = atan(dY/dX);
-	if(dX < 0.0)
-		angle1 += 3.1415;
+	float angle1, angle2;
+
+	if(dX < ZERO_THRESHOLD && dX > -ZERO_THRESHOLD)
+			angle1 = (dY > 0) ? 3.1415/2 : -3.1415/2;
+	else
+	{
+		angle1 = atan(dY/dX);
+		if(dX < 0.0)
+		{
+			angle1 += 3.1415;
+		}
+	}
 	angle1 = (angle1*180.0)/3.1415;
 
 	dX = (goalPos.second).first - player->getPosX();
 	dY = (goalPos.second).second - player->getPosY();
-	float angle2 = atan(dY/dX);
-	if(dX < 0.0)
-		angle2 += 3.1415;
+	if(dX < ZERO_THRESHOLD && dX > -ZERO_THRESHOLD)
+			angle2 = (dY > 0) ? 3.1415/2 : -3.1415/2;
+	else
+	{
+		angle2 = atan(dY/dX);
+		if(dX < 0.0)
+		{
+			angle2 += 3.1415;
+		}
+	}
 	angle2 = (angle2*180.0)/3.1415;
 
 
@@ -541,16 +557,31 @@ bool Game::isPlayerMovingTowardsOwnGoal(Player *player, int teamId, int playerId
 {
 	float dX = (goalPos.first).first - player->getPosX();
 	float dY = (goalPos.first).second - player->getPosY();
-	float angle1 = atan(dY/dX);
-	if(dX < 0.0)
-		angle1 += 3.1415;
+	float angle1, angle2;
+	if(dX < ZERO_THRESHOLD && dX > -ZERO_THRESHOLD)
+			angle1 = (dY > 0) ? 3.1415/2 : -3.1415/2;
+	else
+	{
+		angle1 = atan(dY/dX);
+		if(dX < 0.0)
+		{
+			angle1 += 3.1415;
+		}
+	}
 	angle1 = (angle1*180.0)/3.1415;
 
 	dX = (goalPos.second).first - player->getPosX();
 	dY = (goalPos.second).second - player->getPosY();
-	float angle2 = atan(dY/dX);
-	if(dX < 0.0)
-		angle2 += 3.1415;
+	if(dX < ZERO_THRESHOLD && dX > -ZERO_THRESHOLD)
+			angle2 = (dY > 0) ? 3.1415/2 : -3.1415/2;
+	else
+	{
+		angle2 = atan(dY/dX);
+		if(dX < 0.0)
+		{
+			angle2 += 3.1415;
+		}
+	}
 	angle2 = (angle2*180.0)/3.1415;
 
 
@@ -601,6 +632,7 @@ bool Game::isOpponentNearby(Player *player, int teamId, int playerId)
 {
 	Player *opponentPlayer;
 	float minDist = 1000.0;
+	float angle;
 	for(int i=0;i<PLAYERS_PER_TEAM-1;i++)
 	{
 		if(teamId == 0)
@@ -613,12 +645,34 @@ bool Game::isOpponentNearby(Player *player, int teamId, int playerId)
 		}
 		float dX = player->getPosX() - opponentPlayer->getPosX();
 		float dY = player->getPosY() - opponentPlayer->getPosY();
+		if(dX < ZERO_THRESHOLD && dX > -ZERO_THRESHOLD)
+				angle = (dY > 0) ? 3.1415/2 : -3.1415/2;
+		else
+		{
+			angle = atan(dY/dX);
+			if(dX < 0.0)
+			{
+				angle += 3.1415;
+			}
+		}
+		angle = (angle*180.0)/3.1415;
+
 		float dist = sqrt(dX*dX + dY*dY);
 
 		minDist = min(minDist, dist);
 	}
 
-	if(minDist < 30.0) return true;
+	if(minDist < 10.0)
+		return true;
+
+	if(minDist < 30.0)
+	{
+		if(teamId == 0 && (angle < 90 || angle > 270))
+			return false;
+		if(teamId == 1 && (angle > 90 && angle < 270))
+			return false;
+		return true;
+	}
 	else return false;
 }
 
@@ -637,9 +691,16 @@ bool Game::isTeamMateInABetterPositionToScore(Player *player, Player *teamMate, 
 	float dX = opponentGoalkeeper->getPosX() - ball->getPosX();
 	float dY = opponentGoalkeeper->getPosY() - ball->getPosY();
 
-	angle = atan(dY/dX);
-	if(dX < 0.0)
-		angle += 3.1415;
+	if(dX < ZERO_THRESHOLD && dX > -ZERO_THRESHOLD)
+			angle = (dY > 0) ? 3.1415/2 : -3.1415/2;
+	else
+	{
+		angle = atan(dY/dX);
+		if(dX < 0.0)
+		{
+			angle += 3.1415;
+		}
+	}
 	angle = (angle*180.0)/3.1415;
 
 	if(fabs(angle - player->getAngle()) < 10.0)
@@ -648,6 +709,101 @@ bool Game::isTeamMateInABetterPositionToScore(Player *player, Player *teamMate, 
 	}
 
 	return false;
+}
+
+void Game::whenOpponentInPossessionStrategy(int teamId, int playerId)
+{
+	Player *player, *teamMate, *playerInPossession, *opponentTeamMate;
+	float dX, dY, angle;
+
+	Control control;
+	control.playerId = playerId;
+	control.teamNo = teamId;
+
+	if(teamId == 0)
+	{
+		player = team1[playerId];
+		teamMate = team1[1-playerId];;
+		playerInPossession = team2[possessorPlayerId()];
+		opponentTeamMate = team2[1-possessorPlayerId()];
+	}
+	else
+	{
+		player = team2[playerId];
+		teamMate = team2[1-playerId];
+		playerInPossession = team1[possessorPlayerId()];
+		opponentTeamMate = team1[1-possessorPlayerId()];
+	}
+
+	if(teamMate->getIsBot()) // if both are bots make each bot move towards each opponent palyer
+	{
+		int playerIdInPossession = possessorPlayerId();
+
+		dX = player->getPosX() - teamMate->getPosY();
+		dY = player->getPosY() - teamMate->getPosY();
+		float dist = dX*dX + dY*dY;
+		if(dist < 50.0 && playerId == 0) return;
+
+		if(playerIdInPossession == playerId)
+		{
+			dX = ball->getPosX() - player->getPosX();
+			dY = ball->getPosY() - player->getPosY();
+			if(dX < ZERO_THRESHOLD && dX > -ZERO_THRESHOLD)
+					angle = (dY > 0) ? 3.1415/2 : -3.1415/2;
+			else
+			{
+				angle = atan(dY/dX);
+				if(dX < 0.0)
+				{
+					angle += 3.1415;
+				}
+			}
+			angle = (angle*180.0)/3.1415;
+			movePlayer(teamId, playerId, angle);
+			movePlayer(teamId, playerId, angle);
+		}
+		else if(playerIdInPossession == 1-playerId)
+		{
+			dX = opponentTeamMate->getPosX() - player->getPosX();
+			dY = opponentTeamMate->getPosY() - player->getPosY();
+			int dist = sqrt(dX*dX +dY*dY);;
+			if(fabs(dist) < 30) return;
+			if(dX < ZERO_THRESHOLD && dX > -ZERO_THRESHOLD)
+					angle = (dY > 0) ? 3.1415/2 : -3.1415/2;
+			else
+			{
+				angle = atan(dY/dX);
+				if(dX < 0.0)
+				{
+					angle += 3.1415;
+				}
+			}
+			angle = (angle*180.0)/3.1415;
+			movePlayer(teamId, playerId, angle);
+			movePlayer(teamId, playerId, angle);
+		}
+	}
+	else
+	{
+		dX = ball->getPosX() - player->getPosX();
+		dY = ball->getPosY() - player->getPosY();
+		if(dX < ZERO_THRESHOLD && dX > -ZERO_THRESHOLD)
+				angle = (dY > 0) ? 3.1415/2 : -3.1415/2;
+		else
+		{
+			angle = atan(dY/dX);
+			if(dX < 0.0)
+			{
+				angle += 3.1415;
+			}
+		}
+
+		angle = (angle*180.0)/3.1415;
+		movePlayer(teamId, playerId, angle);
+		movePlayer(teamId, playerId, angle);
+
+
+	}
 }
 
 void Game::whenInPossessionStrategy(int teamId, int playerId)
@@ -705,17 +861,37 @@ void Game::whenInPossessionStrategy(int teamId, int playerId)
 			playerPosX = player->getPosX();
 			playerPosY = player->getPosY();
 
-			angle = atan((playerPosY - goalPosY)/(playerPosX - goalPosX));
-			if((goalPosX - playerPosX) < 0.0)
-				angle += 3.1415;
+			float dX = goalPosX - playerPosX;
+			float dY = goalPosY - playerPosY;
+
+			if(dX < ZERO_THRESHOLD && dX > -ZERO_THRESHOLD)
+					angle = (dY > 0) ? 3.1415/2 : -3.1415/2;
+			else
+			{
+				angle = atan(dY/dX);
+				if(dX < 0.0)
+				{
+					angle += 3.1415;
+				}
+			}
 			angle = (angle*180.0)/3.1415;
 			angle += add;
 			player->setAngle(angle);
 
-			if(teamId == 0)
+			if(teamId == 0 || teamId == 1)
 			{
-				shoot(teamId, playerId);
-				updateShootPower(SHOOT_RATE, teamId, playerId);
+				dX = opponentGoalkeeper->getPosX() - player->getPosX();
+				dY = opponentGoalkeeper->getPosY() - player->getPosY();
+				float dist = sqrt(dX*dX + dY*dY);
+				//if(dist > 20.0)
+				{
+					shoot(teamId, playerId);
+					updateShootPower(SHOOT_RATE, teamId, playerId);
+				}
+				/*else
+				{
+					pass(teamId, playerId);
+				}*/
 			}
 			else
 			{
@@ -732,7 +908,7 @@ void Game::whenInPossessionStrategy(int teamId, int playerId)
 	}
 	else if(isOpponentNearby(player, teamId, playerId))
 	{
-		if(teamId == 0)
+		if(teamId == 0 || teamId == 1)
 		{
 			pass(teamId, playerId);
 		}
@@ -759,11 +935,24 @@ void Game::whenInPossessionStrategy(int teamId, int playerId)
 		playerPosX = player->getPosX();
 		playerPosY = player->getPosY();
 
-		angle = atan((playerPosY - goalPosY)/(playerPosX - goalPosX));
-		if((goalPosX - playerPosX) < 0.0)
-			angle += 3.1415;
+		float dX = goalPosX - playerPosX;
+		float dY = goalPosY - playerPosY;
+		//cout<<dX<<endl;
 
-		if(teamId == 0)
+		if(dX < ZERO_THRESHOLD && dX > -ZERO_THRESHOLD)
+				angle = (dY > 0) ? 3.1415/2 : -3.1415/2;
+		else
+		{
+			angle = atan(dY/dX);
+			if(dX < 0.0)
+			{
+				angle += 3.1415;
+			}
+		}
+
+		//cout<<(angle*180.0)/3.1415<<endl;
+
+		if(teamId == 0 || teamId == 1)
 		{
 			movePlayer(teamId, playerId, (angle*180.0)/3.1415);
 			movePlayer(teamId, playerId, (angle*180.0)/3.1415);
@@ -823,57 +1012,27 @@ void Game::whenNotInPossessionStrategy(int teamId, int playerId)
 	{
 		if(playerInDBox(teamMate, teamId, 1-playerId, opponentGoalPos))
 		{
-			if(distToMyTeamMate < 40.0)
-			{
-				if(goalKeeperMoreTowardsFirstBar(1-teamId, opponentGoalkeeper))
-				{
-					goalPosX = (opponentGoalPos.first).first;
-					goalPosY = (opponentGoalPos.first).second;
-				}
-				else
-				{
-					goalPosX = (opponentGoalPos.second).first;
-					goalPosY = (opponentGoalPos.second).second;
-				}
+			dX = teamMatePosX - playerPosX;
+			dY = teamMatePosY - playerPosY;
 
-				angle = atan((playerPosY - goalPosY)/(playerPosX - goalPosX));
-				if((goalPosX - playerPosX) < 0.0)
-					angle += 3.1415;
-
-				if(teamId == 1)
-				{
-					control.angle = (angle*180.0)/3.1415;
-					insertControl(control);
-				}
-				else
-				{
-					movePlayer(teamId, playerId, (angle*180.0)/3.1415);
-				}
-			}
-			else if(distToMyTeamMate > 60.0)
+			if(dX < ZERO_THRESHOLD && dX > -ZERO_THRESHOLD)
+					angle = (dY > 0) ? 3.1415/2 : -3.1415/2;
+			else
 			{
 				angle = atan(dY/dX);
 				if(dX < 0.0)
+				{
 					angle += 3.1415;
-
-				control.angle = (angle*180.0)/3.1415;
-
-				if(teamId == 1)
-				{
-					insertControl(control);
-					insertControl(control);
 				}
-				else
-				{
-					movePlayer(teamId, playerId, (angle*180.0)/3.1415);
-					movePlayer(teamId, playerId, (angle*180.0)/3.1415);
-				}
-				return;
 			}
-			else
-			{
-				return;
-			}
+
+			bool isTeamMateMovingTowardsPlayer = false;
+			if(fabs(teamMate->getAngle() - (angle*180.0)/3.1415) < 10.0) isTeamMateMovingTowardsPlayer = true;
+
+			if((distToMyTeamMate < 40.0 || distToMyTeamMate > 60.0) && !isTeamMateMovingTowardsPlayer) return;
+
+			movePlayer(teamId, playerId, (angle*180.0)/3.1415);
+			movePlayer(teamId, playerId, (angle*180.0)/3.1415);
 
 		}
 		if(distToMyTeamMate < 30.0)
@@ -883,12 +1042,12 @@ void Game::whenNotInPossessionStrategy(int teamId, int playerId)
 		else if(distToMyTeamMate < 80.0)
 		{
 			control.angle = teamMate->getAngle();
-			if(teamId == 1)
+			/*if(teamId == 1)
 			{
 				insertControl(control);
 				insertControl(control);
 			}
-			else
+			else*/
 			{
 				movePlayer(teamId, playerId, teamMate->getAngle());
 				movePlayer(teamId, playerId, teamMate->getAngle());
@@ -897,17 +1056,24 @@ void Game::whenNotInPossessionStrategy(int teamId, int playerId)
 		}
 		else
 		{
-			angle = atan(dY/dX);
-			if(dX < 0.0)
-				angle += 3.1415;
+			if(dX < ZERO_THRESHOLD && dX > -ZERO_THRESHOLD)
+					angle = (dY > 0) ? 3.1415/2 : -3.1415/2;
+			else
+			{
+				angle = atan(dY/dX);
+				if(dX < 0.0)
+				{
+					angle += 3.1415;
+				}
+			}
 			control.angle = (angle*180.0)/3.1415;
 
-			if(teamId == 1)
+			/*if(teamId == 1)
 			{
 				insertControl(control);
 				insertControl(control);
 			}
-			else
+			else*/
 			{
 				movePlayer(teamId, playerId, (angle*180.0)/3.1415);
 				movePlayer(teamId, playerId, (angle*180.0)/3.1415);
@@ -964,22 +1130,62 @@ void Game::whenNotInPossessionStrategy(int teamId, int playerId)
 		}
 	}
 
-	angle = atan((playerPosY - goalPosY)/(playerPosX - goalPosX));
-	if((goalPosX - playerPosX) < 0.0)
-		angle += 3.1415;
+	dY = (goalPosY - playerPosY);
+	dX = (goalPosX - playerPosX);
+
+	if(dX < ZERO_THRESHOLD && dX > -ZERO_THRESHOLD)
+			angle = (dY > 0) ? 3.1415/2 : -3.1415/2;
+	else
+	{
+		angle = atan(dY/dX);
+		if(dX < 0.0)
+		{
+			angle += 3.1415;
+		}
+	}
 
 	control.angle = (angle*180.0)/3.1415;
 
-	if(teamId == 1)
+	/*if(teamId == 1)
 	{
 		insertControl(control);
 		insertControl(control);
+	}
+	else*/
+	{
+		movePlayer(teamId, playerId, (angle*180.0)/3.1415);
+		movePlayer(teamId, playerId, (angle*180.0)/3.1415);
+	}
+}
+
+void Game::whenBallIsFreeStrategy(int teamId, int playerId)
+{
+	Player *player;
+	float dX, dY, angle;
+	if(teamId == 0)
+	{
+		player = team1[playerId];
 	}
 	else
 	{
-		movePlayer(teamId, playerId, (angle*180.0)/3.1415);
-		movePlayer(teamId, playerId, (angle*180.0)/3.1415);
+		player = team2[playerId];
 	}
+
+	dX = ball->getPosX() - player->getPosX();
+	dY = ball->getPosY() - player->getPosY();
+
+	if(dX < ZERO_THRESHOLD && dX > -ZERO_THRESHOLD)
+		angle = (dY > 0) ? 3.1415/2 : -3.1415/2;
+	else
+	{
+		angle = atan(dY/dX);
+		if(dX < 0.0)
+		{
+			angle += 3.1415;
+		}
+	}
+
+	movePlayer(teamId, playerId, (angle*180.0)/3.1415);
 }
 
 void Game::computeNewPositionForOutfieldBotPlayers()
@@ -999,22 +1205,33 @@ void Game::computeNewPositionForOutfieldBotPlayers()
 				player = team2[playerId];
 				teamMate = team2[1-playerId];
 			}
+			//cout<<team<<endl;
 			if(!(player->getIsBot())) continue;
 
-			if(isMyTeamInPossession() && team == myPlayerTeam)
+			int teamInPossession = possessorPlayerTeam();
+
+			if(getType() == CREATOR)
 			{
-				if(teamMate->InPossession())
+				if(teamInPossession == team)
 				{
-					whenNotInPossessionStrategy(team, playerId);
+					if(teamMate->InPossession())
+					{
+						whenNotInPossessionStrategy(team, playerId);
+					}
+					else
+					{
+						whenInPossessionStrategy(team, playerId);
+					}
+				}
+				else if(teamInPossession == 1-team)
+				{
+					//cout<<"here";
+					whenOpponentInPossessionStrategy(team, playerId);
 				}
 				else
 				{
-					whenInPossessionStrategy(team, playerId);
+					//whenBallIsFreeStrategy(team, playerId);
 				}
-			}
-			else
-			{
-				//whenOpponentInPossessionStrategy(team, playerId);
 			}
 
 		}
@@ -1223,6 +1440,11 @@ bool Game::isBallInPossession()
 			return true;
 	}
 	return false;
+}
+
+bool Game::isOpponentTeamInPossession()
+{
+	return (possessorPlayerTeam() == (1-myPlayerTeam));
 }
 
 int Game::possessorPlayerTeam()

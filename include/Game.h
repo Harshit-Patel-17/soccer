@@ -132,6 +132,7 @@ class Game
 	void whenNotInPossessionStrategy(int teamId, int playerId);
 	void whenInPossessionStrategy(int teamId, int playerId);
 	void whenOpponentInPossessionStrategy(int teamId, int playerId);
+	void whenBallIsFreeStrategy(int teamId, int playerId);
 	bool goalKeeperMoreTowardsFirstBar(int teamId, Player *goalkeeper);
 	bool isPlayerMovingTowardsGoal(Player *player, int teamId, int playerId, pair<pair<float,float>, pair<float,float> > goalPos);
 	bool isPlayerMovingTowardsOwnGoal(Player *player, int teamId, int playerId, pair<pair<float,float>, pair<float,float> > goalPos);
@@ -152,6 +153,7 @@ public:
 	void applyBallDeflection(float oldX, float oldY, float newX, float newY);
 	bool isBallInPossession();
 	bool isMyTeamInPossession();
+	bool isOpponentTeamInPossession();
 	int possessorPlayerTeam();
 	int possessorPlayerId();
 	void setBallFree(); //No possession by any player
