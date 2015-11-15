@@ -21,7 +21,7 @@ using namespace std;
 
 std::mutex stateMutex;
 std::mutex controlQMutex;
-std::mutex effectQMutex[3];
+std::mutex effectQMutex[4];
 
 std::string getIp() {
 
@@ -66,7 +66,7 @@ bool connected(int sock)
      return true;
 }
 
-bool sendPacket(Game *game, Packet *packet, char *destIp, int destPort)
+bool sendPacket(Game *game, Packet *packet, char *destIp, int destPort, string *response)
 {
 	int sockFd, portNo, count;
 	struct sockaddr_in serverAddr;
@@ -117,14 +117,13 @@ bool sendPacket(Game *game, Packet *packet, char *destIp, int destPort)
 		return false;
 	}
 
+	*response = buffer;
 	close(sockFd);
 	return true;
 }
 
 void controlSender(Game *game, char *destIp, int destPort)
 {
-	std::cout << destIp << ":" << destPort << std::endl;
-
 	int sockFd, portNo, count;
 	struct sockaddr_in serverAddr;
 	const unsigned int bufferSize = sizeof(Packet);
@@ -214,9 +213,11 @@ void communicate(int newSockFd, Game *game)
 		{
 		case CONNECT:
 			//std::cout << "Connect packet received." << std::endl;
-			game->addPlayer(packet.ip, packet.port, packet.teamNo, packet.playerId);
+			if(game->addPlayer(packet.ip, packet.port, packet.teamNo, packet.playerId))
+				strcpy(buffer, "1");
+			else
+				strcpy(buffer, "0");
 			//game->onlinePlayers->add(packet.ip,  packet.port, packet.teamNo, packet.playerId);
-			strcpy(buffer, "Connect packet received");
 			count = write(newSockFd, buffer, strlen(buffer));
 			break;
 
@@ -230,6 +231,11 @@ void communicate(int newSockFd, Game *game)
 			stateMutex.unlock();
 			count = write(newSockFd, (char *)&packet, sizeof(Packet));
 			persistent = true;
+			break;
+
+		case QUERY:
+			strcpy(buffer, game->makePlayerString().c_str());
+			count = write(newSockFd, buffer, strlen(buffer));
 			break;
 		}
 	}while(persistent);
@@ -263,9 +269,11 @@ void serverRunner(Game *game)
 		return;
 	}
 
+	if(game->getType() == CREATOR)
+		std::cout << "Listening on IP: " << game->ip << " and Port: " << game->port << std::endl;
+
 	while(1) {
 		//Start listening to incoming connections
-		std::cout << "Listening to incoming connection..." << std::endl;
 		//serverRunning.notify_all();
 		listen(sockFd, 5);
 		clientLen = sizeof(clientAddr);
@@ -283,10 +291,10 @@ void serverRunner(Game *game)
 	close(sockFd);
 }
 
-Game::Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPlayerId)
+Game::Game(int port, game_type type, weather_type weather)
 {
 	this->ip[0] = 0;
-	strcpy(this->ip, ip);
+	strcpy(this->ip, getIp().c_str());
 	this->port = port;
 
 	soccer = new Soccer();
@@ -313,12 +321,16 @@ Game::Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPla
 		else if(i==0)
 		{
 			team1[i] = new Player(0, 2, GROUND_WIDTH/2 - 10, GROUND_HEIGHT/2, 0, soccer, ground, true, ball); // kickOff team player 1
+			team1[i]->setAngle(0);
 			team2[i] = new Player(1, 2, GROUND_WIDTH/2 + 20.0, GROUND_HEIGHT/2, 0, soccer, ground, true, ball);
+			team2[i]->setAngle(180);
 		}
 		else
 		{
 			team1[i] = new Player(0, 2, (GROUND_WIDTH/2) - 20.0, GROUND_HEIGHT/2 - 50.0, 0, soccer, ground, true, ball); // kickOff team player 2
+			team1[i]->setAngle(0);
 			team2[i] = new Player(1, 2, GROUND_WIDTH/2 + 20.0, GROUND_HEIGHT/2 - 50.0, 0, soccer, ground, true, ball);
+			team2[i]->setAngle(180);
 		}
 
 		state->Team1[i] = *(team1[i]);
@@ -327,17 +339,21 @@ Game::Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPla
 
 	team1[0]->possess();
 
-	this->myPlayerTeam = myPlayerTeam;
-	this->myPlayerId = myPlayerId;
+	if(type == CREATOR)
+	{
+		myPlayerTeam = 0;
+		myPlayerId = 0;
 
-	if(myPlayerTeam == 0)
-		myPlayer = team1[myPlayerId];
-	else
-		myPlayer = team2[myPlayerId];
+		if(myPlayerTeam == 0)
+			myPlayer = team1[myPlayerId];
+		else
+			myPlayer = team2[myPlayerId];
 
-	for(int i = 0; i < 3; i++)
+		myPlayer->setIsBot(false);
+	}
+
+	for(int i = 0; i < 4; i++)
 		effectQ[i] = new std::queue<effect_type>;
-	myPlayer->setIsBot(false);
 
 	controlQ = new std::queue<Control>;
 
@@ -351,7 +367,14 @@ Game::Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPla
 
 	this->timeSpent = 0;
 
-	playCrowdChant();
+	if(type == CREATOR)
+	{
+		if(weather == STORM)
+			playThunderEffect();
+		else
+			playCrowdChant();
+		isMusicRunning = true;
+	}
 
 	isGoalSequenceRunning = false;
 
@@ -360,9 +383,13 @@ Game::Game(const char *ip, int port, game_type type, int myPlayerTeam, int myPla
 	matchCompleted = false;
 	team1Won = false;
 	team2Won = false;
+
+	lastGoalScoringTeam = -1;
+
+	this->weather = weather;
 }
 
-void Game::reset()
+void Game::reset(int teamInAttack)
 {
 	ball->setPosX(GROUND_WIDTH/2);
 	ball->setPosY(GROUND_HEIGHT/2);
@@ -370,44 +397,110 @@ void Game::reset()
 
 	state->ball = *ball;
 
-	for(int i = 0; i < PLAYERS_PER_TEAM; i++)
+
+	if(teamInAttack == 0)
 	{
+		for(int i = 0; i < PLAYERS_PER_TEAM; i++)
+		{
 
-		if(i==2) //goalkeeper
-		{
-			team1[i]->setPosX(50.0f);
-			team1[i]->setPosY(GROUND_HEIGHT/2);
-			team1[i]->setPosture(0);
-			team2[i]->setPosX(334.0f);
-			team2[i]->setPosY(GROUND_HEIGHT/2);
-			team2[i]->setPosture(0);
-		}
-		else if(i==0)
-		{
-			team1[i]->setPosX(GROUND_WIDTH/2 - 10);
-			team1[i]->setPosY(GROUND_HEIGHT/2);
-			team1[i]->setPosture(0);
-			team2[i]->setPosX(GROUND_WIDTH/2 + 20.0);
-			team2[i]->setPosY(GROUND_HEIGHT/2);
-			team2[i]->setPosture(0);
-		}
-		else
-		{
-			team1[i]->setPosX(GROUND_WIDTH/2 - 20.0);
-			team1[i]->setPosY(GROUND_HEIGHT/2 - 50.0);
-			team1[i]->setPosture(0);
-			team2[i]->setPosX(GROUND_WIDTH/2 + 20.0);
-			team2[i]->setPosY(GROUND_HEIGHT/2 - 50.0);
-			team2[i]->setPosture(0);
+			if(i==2) //goalkeeper
+			{
+				team1[i]->setPosX(50.0f);
+				team1[i]->setPosY(GROUND_HEIGHT/2);
+				team1[i]->setPosture(0);
+				team2[i]->setPosX(334.0f);
+				team2[i]->setPosY(GROUND_HEIGHT/2);
+				team2[i]->setPosture(0);
+			}
+			else if(i==0)
+			{
+				team1[i]->setPosX(GROUND_WIDTH/2 - 10.0);
+				team1[i]->setPosY(GROUND_HEIGHT/2);
+				team1[i]->setPosture(0);
+				team1[i]->setAngle(0);
+				team2[i]->setPosX(GROUND_WIDTH/2 + 20.0);
+				team2[i]->setPosY(GROUND_HEIGHT/2);
+				team2[i]->setPosture(0);
+				team2[i]->setAngle(180);
+			}
+			else
+			{
+				team1[i]->setPosX(GROUND_WIDTH/2 - 20.0);
+				team1[i]->setPosY(GROUND_HEIGHT/2 - 50.0);
+				team1[i]->setPosture(0);
+				team1[i]->setAngle(0);
+				team2[i]->setPosX(GROUND_WIDTH/2 + 20.0);
+				team2[i]->setPosY(GROUND_HEIGHT/2 - 50.0);
+				team2[i]->setPosture(0);
+				team2[i]->setAngle(180);
+			}
+
+			state->Team1[i] = *(team1[i]);
+			state->Team2[i] = *(team2[i]);
 		}
 
-		state->Team1[i] = *(team1[i]);
-		state->Team2[i] = *(team2[i]);
+		team1[0]->possess();
 	}
+	else
+	{
+		for(int i = 0; i < PLAYERS_PER_TEAM; i++)
+		{
 
-	team1[0]->possess();
+			if(i==2) //goalkeeper
+			{
+				team1[i]->setPosX(50.0f);
+				team1[i]->setPosY(GROUND_HEIGHT/2);
+				team1[i]->setPosture(0);
+				team2[i]->setPosX(334.0f);
+				team2[i]->setPosY(GROUND_HEIGHT/2);
+				team2[i]->setPosture(0);
+			}
+			else if(i==0)
+			{
+				team1[i]->setPosX(GROUND_WIDTH/2 - 20.0);
+				team1[i]->setPosY(GROUND_HEIGHT/2);
+				team1[i]->setPosture(0);
+				team1[i]->setAngle(0);
+				team2[i]->setPosX(GROUND_WIDTH/2 + 10.0);
+				team2[i]->setPosY(GROUND_HEIGHT/2);
+				team2[i]->setPosture(0);
+				team2[i]->setAngle(180);
+			}
+			else
+			{
+				team1[i]->setPosX(GROUND_WIDTH/2 - 20.0);
+				team1[i]->setPosY(GROUND_HEIGHT/2 - 50.0);
+				team1[i]->setPosture(0);
+				team1[i]->setAngle(0);
+				team2[i]->setPosX(GROUND_WIDTH/2 + 20.0);
+				team2[i]->setPosY(GROUND_HEIGHT/2 - 50.0);
+				team2[i]->setPosture(0);
+				team2[i]->setAngle(180);
+			}
+
+			state->Team1[i] = *(team1[i]);
+			state->Team2[i] = *(team2[i]);
+		}
+
+		team2[0]->possess();
+	}
 	isGoalSequenceRunning = false;
 	blowWhistle();
+}
+
+void Game::selectPlayer()
+{
+	std::cout << "Select team(0/1): ";
+	std::cin >> myPlayerTeam;
+	std::cout << "Select player(0/1): ";
+	std::cin >> myPlayerId;
+
+	if(myPlayerTeam == 0)
+		myPlayer = team1[myPlayerId];
+	else
+		myPlayer = team2[myPlayerId];
+
+	myPlayer->setIsBot(false);
 }
 
 Game::~Game() {
@@ -1647,7 +1740,7 @@ void goalSequenceTimer(Game *game)
 {
 	game->playCrowdCheer();
 	std::this_thread::sleep_for(std::chrono::seconds(5));
-	game->reset();
+	game->reset(1 - game->getLastGoalScoringTeam());
 }
 
 void Game::initiateGoalSequence(int goalState)
@@ -1664,10 +1757,12 @@ void Game::initiateGoalSequence(int goalState)
 	{
 		case 0:
 			increaseTeam2Goals();
+			lastGoalScoringTeam = 1;
 			break;
 
 		case 1:
 			increaseTeam1Goals();
+			lastGoalScoringTeam = 0;
 			break;
 	}
 
@@ -1688,8 +1783,10 @@ void Game::initiateEndSequence()
 		team2Won = true;
 }
 
-void Game::join(char *ip, int port)
+void Game::join()
 {
+	selectPlayer();
+
 	Packet packet;
 	strcpy(packet.ip, this->ip);
 	packet.port = this->port;
@@ -1697,14 +1794,100 @@ void Game::join(char *ip, int port)
 	packet.teamNo = myPlayerTeam;
 	packet.playerId = myPlayerId;
 
-	sendPacket(this, &packet, ip, port);
+	string response;
+
+	sendPacket(this, &packet, serverIp, serverPort, &response);
+
+	if(response[0] == '0')
+	{
+		std::cout << "Could not join the game..." << std::endl;
+		query();
+		return;
+	}
+
 	onlinePlayers->add(ip, port, 0, 0);
 
-	std::thread controlSenderThread(controlSender, this, ip, port);
+	std::thread controlSenderThread(controlSender, this, serverIp, serverPort);
 	controlSenderThread.detach();
 }
 
-void Game::addPlayer(char *ip, int port, int teamNo, int playerId)
+void Game::setServerAddr()
+{
+	cout << "Creator IP: ";
+	cin >> serverIp;
+	cout << "Creator Port: ";
+	cin >> serverPort;
+}
+
+void Game::query()
+{
+	Packet packet;
+	strcpy(packet.ip, this->ip);
+	packet.port = this->port;
+	packet.type = QUERY;
+	packet.teamNo = myPlayerTeam;
+	packet.playerId = myPlayerId;
+
+	string response;
+
+	sendPacket(this, &packet, serverIp, serverPort, &response);
+
+	parseAndDisplayPlayerString(response);
+
+	join();
+}
+
+string Game::makePlayerString()
+{
+	string playerString;
+
+	for(int i = 0; i < 2; i++)
+	{
+		for(int j = 0; j < 2; j++)
+		{
+			if(i == 0)
+			{
+				if(team1[j]->getIsBot())
+					playerString += "1";
+				else
+					playerString += "0";
+			}
+			else
+			{
+				if(team2[j]->getIsBot())
+					playerString += "1";
+				else
+					playerString += "0";
+			}
+		}
+	}
+
+	return playerString;
+}
+
+void Game::parseAndDisplayPlayerString(string playerString)
+{
+	if(playerString.length() != 4)
+	{
+		std::cerr << "Error in player string." << std::endl;
+		return;
+	}
+
+	std::cout << std::endl << "Remote player status:" << std::endl;
+
+	for(int i = 0; i < 2; i++)
+	{
+		for(int j = 0; j < 2; j++)
+		{
+			if(playerString[i*2 + j] == '1')
+				std::cout << "Player " << j << " of team " << i << " is bot" << std::endl;
+			else
+				std::cout << "Player " << j << " of team " << i << " is human" << std::endl;
+		}
+	}
+}
+
+bool Game::addPlayer(char *ip, int port, int teamNo, int playerId)
 {
 	Player *player;
 
@@ -1713,8 +1896,13 @@ void Game::addPlayer(char *ip, int port, int teamNo, int playerId)
 	else
 		player = team2[playerId];
 
+	if(!player->getIsBot())
+		return false;
+
 	onlinePlayers->add(ip, port, teamNo, playerId);
 	player->setIsBot(false);
+
+	return true;
 }
 
 void Game::applyState(State *state)
@@ -1722,6 +1910,17 @@ void Game::applyState(State *state)
 	stateMutex.lock();
 	//int team = possessorPlayerTeam();
 	//int id = possessorPlayerId();
+
+	weather = state->weather;
+
+	if(!isMusicRunning)
+	{
+		if(state->weather == STORM)
+			playThunderEffect();
+		else
+			playCrowdChant();
+		isMusicRunning = true;
+	}
 
 	switch(state->effectType)
 	{
@@ -1800,8 +1999,6 @@ void Game::insertEffect(effect_type type)
 	{
 		for(int j = 0; j < 2; j++)
 		{
-			if(i == 0 && j == 0)
-				continue;
 			if(i == 0)
 			{
 				if(team1[j]->getIsBot())
@@ -1812,7 +2009,7 @@ void Game::insertEffect(effect_type type)
 				if(team2[j]->getIsBot())
 					continue;
 			}
-			int index = i*2 + j - 1;
+			int index = i*2 + j;
 			effectQMutex[index].lock();
 			effectQ[index]->push(type);
 			effectQMutex[index].unlock();
@@ -1824,7 +2021,7 @@ effect_type Game::removeEffect(int teamNo, int playerId)
 {
 	effect_type returnVal = NONE_EFFECT;
 
-	int index = teamNo*2 + playerId - 1;
+	int index = teamNo*2 + playerId;
 
 	effectQMutex[index].lock();
 	if(effectQ[index]->size() != 0)
@@ -1851,8 +2048,8 @@ void Game::draw()
 
 	for(int i = 0; i < PLAYERS_PER_TEAM; i++)
 	{
-		team1[i]->draw();
-		team2[i]->draw();
+		team1[i]->draw(weather);
+		team2[i]->draw(weather);
 	}
 
 
@@ -1871,6 +2068,7 @@ void Game::draw()
 	}
 
 	stateMutex.lock();
+	state->weather = weather;
 	state->timeSpent = computeTimeSpent();
 	state->ball = *ball;
 
@@ -1953,6 +2151,11 @@ void Game::playCrowdChant()
 	Mix_PlayMusic(soccer->getCrowdChant(), -1);
 }
 
+void Game::playThunderEffect()
+{
+	Mix_PlayMusic(soccer->getThunderEffect(), -1);
+}
+
 void Game::playShootEffect()
 {
 	Mix_PlayChannel(-1, soccer->getShootEffect(), 0);
@@ -1971,4 +2174,19 @@ void Game::blowWhistle()
 bool Game::isMatchCompleted()
 {
 	return matchCompleted;
+}
+
+void Game::setLastGoalScoringTeam(int lastGoalScoringTeam)
+{
+	this->lastGoalScoringTeam = lastGoalScoringTeam;
+}
+
+int Game::getLastGoalScoringTeam()
+{
+	return lastGoalScoringTeam;
+}
+
+weather_type Game::getWeather()
+{
+	return weather;
 }
