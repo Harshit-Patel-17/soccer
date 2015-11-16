@@ -19,7 +19,7 @@ using namespace std;
 #define Y_CHANGE_THRESHOLD 0.005
 #define GK_MIN_Y 83
 #define GK_MAX_Y 133
-#define GK_CLAIM_THRESHOLD 12
+#define GK_CLAIM_THRESHOLD 5
 
 class Player
 {
