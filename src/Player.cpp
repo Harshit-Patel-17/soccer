@@ -200,9 +200,20 @@ void Player::pass(int playerTeam, int playerId, Player *destPlayer, int destPlay
 	float u = 8.0;
 	float accn = -1.0*((u*u)/(2.0*dist));
 
-	float angle = atan((src.second - dest.second)/(src.first - dest.first));
-	if((dest.first - src.first) < 0.0)
-		angle += 3.1415;
+	float dX = dest.first - src.first;
+	float dY = dest.second - src.second;
+	float angle;
+
+	if(dX < 1 && dX > -1)
+			angle = (dY > 0) ? 3.1415/2 : -3.1415/2;
+	else
+	{
+		angle = atan(dY/dX);
+		if(dX < 0.0)
+		{
+			angle += 3.1415;
+		}
+	}
 
 	possession = false;
 	ball->hit(u, accn, (angle*180.0)/3.1415);
