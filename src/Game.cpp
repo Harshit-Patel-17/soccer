@@ -563,12 +563,18 @@ void Game::movePlayer(int playerTeam, int playerId, float angle)
 	if(!botEnabled)
 		return;
 
-	Player *player;
+	Player *player, *teamMate;
 
 	if(playerTeam == 0)
+	{
 		player = team1[playerId];
+		teamMate = team1[1 - playerId];
+	}
 	else
+	{
 		player = team2[playerId];
+		teamMate = team2[1 - playerId];
+	}
 
 	if(!player->getIsMovable())
 		return;
@@ -588,17 +594,10 @@ void Game::movePlayer(int playerTeam, int playerId, float angle)
 
 	if(dist < HIT_THRESHOLD)
 	{
-		/*if(isBallInPossession())
-		{
-			Player *possessor;
-			if(possessorPlayerTeam() == 0)
-				possessor = team1[possessorPlayerId()];
-			else
-				possessor = team2[possessorPlayerId()];
-			possessor->immobilize();
-		}*/
 		setBallFree();
 		player->possess();
+		if(!teamMate->getIsBot() && player->getIsBot())
+			switchPlayers();
 	}
 
 	/*if(isBallInPossession())
@@ -1564,14 +1563,16 @@ void Game::moveBall()
 			pair<int,int> ballPassedBy = ball->getBallPassedBy();
 			if(ballPassedBy.first == team && ballPassedBy.second == i && ball->isBallPassed()) continue;
 
-			Player *player;
+			Player *player, *teamMate;
 
 			if(team == 0)
 			{
+				teamMate = team1[1-i];
 				player = team1[i];
 			}
 			else
 			{
+				teamMate = team1[1-i];
 				player = team2[i];
 			}
 
@@ -1587,6 +1588,12 @@ void Game::moveBall()
 				ball->setPosX(player->getPosX());
 				ball->setPosY(player->getPosY());
 				ball->setAccn(-1000.0);
+				/*if(ballPassedBy.first == team && i == 1 - ballPassedBy.second)
+				{
+					if(player->getIsBot() && !teamMate->getIsBot())
+						switchPlayers();
+
+				}*/
 				return;
 			}
 		}
@@ -2453,4 +2460,19 @@ void Game::setBotEnabled(bool botEnabled)
 bool Game::getBotEnabled()
 {
 	return botEnabled;
+}
+
+void Game::switchPlayers()
+{
+	Player *player;
+
+	if(myPlayerTeam == 0)
+		player = team1[1 - myPlayerId];
+	else
+		player = team2[1 - myPlayerId];
+
+	player->setIsBot(false);
+	myPlayer->setIsBot(true);
+	myPlayer = player;
+	myPlayerId = 1 - myPlayerId;
 }

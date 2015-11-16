@@ -358,6 +358,19 @@ void Player::draw(weather_type weather)
 		glTexCoord2f(0, 1); glVertex3f(pos_x - width/2, pos_y + height/2, 0);
 	glEnd();
 	restoreRotation();
+
+	if(isBot)
+		return;
+
+	glDisable(GL_TEXTURE_2D);
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glBegin(GL_POLYGON);
+		glVertex2f(pos_x - 1, pos_y + 10);
+		glVertex2f(pos_x + 1, pos_y + 10);
+		glVertex2f(pos_x , pos_y + 7);
+	glEnd();
+	glEnable(GL_TEXTURE_2D);
+	glColor4f(currentColor[0], currentColor[1], currentColor[2], currentColor[3]);
 }
 
 void Player::operator=(Player& player)

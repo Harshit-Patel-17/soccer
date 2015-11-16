@@ -207,6 +207,7 @@ public:
 	weather_type getWeather();
 	void setBotEnabled(bool botEnabled);
 	bool getBotEnabled();
+	void switchPlayers();
 
 	friend void serverRunner(Game *game);
 	friend bool sendPacket(Game *game, Packet *packet, char *destIp, int destPort, string *response);
