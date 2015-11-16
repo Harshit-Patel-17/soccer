@@ -510,10 +510,15 @@ Game::~Game() {
 		delete team2[i];
 	}
 
+	for(int i = 0; i < 4; i++)
+		delete effectQ[i];
+
 	delete state;
 	delete ball;
 	delete ground;
 	delete soccer;
+	delete controlQ;
+	delete onlinePlayers;
 }
 
 void Game::startServer()
