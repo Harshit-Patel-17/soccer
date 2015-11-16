@@ -133,8 +133,11 @@ class Game
 	bool isMusicRunning;
 	int lastGoalScoringTeam;
 	weather_type weather;
+	int shootingState;
+	int goalkeeperClaimCounter;
 	void displayGoalWord();
 	void displayResult();
+	void makeBotsRetreat();
 	void whenNotInPossessionStrategy(int teamId, int playerId);
 	void whenInPossessionStrategy(int teamId, int playerId);
 	void whenOpponentInPossessionStrategy(int teamId, int playerId);
