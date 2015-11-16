@@ -360,7 +360,7 @@ void welcomeMouseFunc(int button, int state, int x, int y)
 			{
 			case SINGLE_PLAYER:
 				sceneManager.flushAllScenes();
-				sceneManager.game = new Game(3000, CREATOR, sceneManager.gameWeather);
+				sceneManager.game = new Game(3000, CREATOR, sceneManager.gameWeather, 0);
 				(sceneManager.game)->startServer();
 				sceneManager.loadScene(GAME);
 				break;
@@ -390,13 +390,13 @@ void welcomeMouseFunc(int button, int state, int x, int y)
 			switch(multiplayerCommand)
 			{
 			case CREATE_GAME:
-				sceneManager.game = new Game(3000, CREATOR, sceneManager.gameWeather);
+				sceneManager.game = new Game(3000, CREATOR, sceneManager.gameWeather, 1);
 				(sceneManager.game)->startServer();
 				sceneManager.loadScene(GAME);
 				break;
 
 			case JOIN_GAME:
-				sceneManager.game = new Game(4000, JOINER, sceneManager.gameWeather);
+				sceneManager.game = new Game(4000, JOINER, sceneManager.gameWeather, 1);
 				(sceneManager.game)->startServer();
 				(sceneManager.game)->setServerAddr((sceneManager.multiplayer)->getServerIp().c_str(), (sceneManager.multiplayer)->getServerPort());
 				(sceneManager.game)->selectPlayer((sceneManager.multiplayer)->getTeam(), (sceneManager.multiplayer)->getPlayer());

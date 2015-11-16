@@ -383,6 +383,7 @@ void Player::operator=(Player& player)
 	this->pos_y = player.pos_y;
 	this->angle = player.angle;
 	this->possession = player.possession;
+	this->isBot = player.isBot;
 }
 
 void immobilityTimer(Player *player)

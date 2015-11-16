@@ -105,6 +105,7 @@ struct Packet
 
 class Game
 {
+	int mode;
 	bool botEnabled;
 	Soccer *soccer;
 	Ground *ground;
@@ -150,7 +151,7 @@ class Game
 	bool isOpponentNearby(Player *player, int teamId, int playerId);
 	bool isTeamMateInABetterPositionToScore(Player *player, Player *teamMate, int teamId, int playerId, pair<pair<float,float>, pair<float,float> > goalPos);
 public:
-	Game(int port, game_type type, weather_type weather);
+	Game(int port, game_type type, weather_type weather, int mode);
 	virtual ~Game();
 
 	void reset(int teamInAttack);

@@ -297,7 +297,7 @@ void enableBot(Game *game)
 	game->setBotEnabled(true);
 }
 
-Game::Game(int port, game_type type, weather_type weather)
+Game::Game(int port, game_type type, weather_type weather, int mode)
 {
 	this->ip[0] = 0;
 	strcpy(this->ip, getIp().c_str());
@@ -394,9 +394,12 @@ Game::Game(int port, game_type type, weather_type weather)
 
 	this->weather = weather;
 
+	this->mode = mode;
+
 	this->botEnabled = false;
 	std::thread timer(enableBot, this);
 	timer.detach();
+
 }
 
 void Game::reset(int teamInAttack)
@@ -596,8 +599,9 @@ void Game::movePlayer(int playerTeam, int playerId, float angle)
 	{
 		setBallFree();
 		player->possess();
-		if(!teamMate->getIsBot() && player->getIsBot())
-			switchPlayers();
+		if(mode == 0)
+			if(!teamMate->getIsBot() && player->getIsBot())
+				switchPlayers();
 	}
 
 	/*if(isBallInPossession())
@@ -2402,7 +2406,7 @@ float Game::computeTimeSpent()
 {
 	clock_t endTime = clock();
 	float time_spent = (float)(endTime - startTime) / CLOCKS_PER_SEC;
-	time_spent = floorf(time_spent * 100) / 100 - 0.40;
+	time_spent = floorf(time_spent * 100) / 100;
 	time_spent *= 100;
 	return time_spent;
 }
