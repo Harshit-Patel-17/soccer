@@ -105,6 +105,7 @@ struct Packet
 
 class Game
 {
+	bool botEnabled;
 	Soccer *soccer;
 	Ground *ground;
 	Ball *ball;
@@ -160,6 +161,7 @@ public:
 	int getMyPlayerId();
 	void movePlayer(int playerTeam, int playerId, float angle);
 	void moveBall();
+	bool checkForObstacles(Player *player, float angle);
 	void applyBallDeflection(float oldX, float oldY, float newX, float newY);
 	bool isBallInPossession();
 	bool isMyTeamInPossession();
@@ -184,6 +186,7 @@ public:
 	void insertEffect(effect_type type);
 	effect_type removeEffect(int teamNo, int playerId);
 	void draw();
+	void displayScore();
 	void increaseTeam1Goals();
 	int getTeam1Goals();
 	void increaseTeam2Goals();
@@ -202,6 +205,8 @@ public:
 	void setLastGoalScoringTeam(int lastGoalScoringTeam);
 	int getLastGoalScoringTeam();
 	weather_type getWeather();
+	void setBotEnabled(bool botEnabled);
+	bool getBotEnabled();
 
 	friend void serverRunner(Game *game);
 	friend bool sendPacket(Game *game, Packet *packet, char *destIp, int destPort, string *response);

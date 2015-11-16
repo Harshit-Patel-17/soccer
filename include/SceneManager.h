@@ -19,6 +19,7 @@ class SceneManager {
 	Game *game;
 	Welcome *welcome;
 	MultiPlayer *multiplayer;
+	weather_type gameWeather;
 public:
 	SceneManager();
 	virtual ~SceneManager();
@@ -27,6 +28,7 @@ public:
 	void loadScene(scene_type scene);
 	void drawScene();
 	void mouseMotion(int x, int y);
+	void setGameWeather(weather_type weather);
 
 	friend void handleKeyboardInput(int value);
 	friend void handleJoystickInput(unsigned int buttomMask, int xaxis, int yaxis, int zaxis);

@@ -291,6 +291,12 @@ void serverRunner(Game *game)
 	close(sockFd);
 }
 
+void enableBot(Game *game)
+{
+	std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+	game->setBotEnabled(true);
+}
+
 Game::Game(int port, game_type type, weather_type weather)
 {
 	this->ip[0] = 0;
@@ -387,6 +393,10 @@ Game::Game(int port, game_type type, weather_type weather)
 	lastGoalScoringTeam = -1;
 
 	this->weather = weather;
+
+	this->botEnabled = false;
+	std::thread timer(enableBot, this);
+	timer.detach();
 }
 
 void Game::reset(int teamInAttack)
@@ -486,6 +496,9 @@ void Game::reset(int teamInAttack)
 	}
 	isGoalSequenceRunning = false;
 	blowWhistle();
+	this->botEnabled = false;
+	std::thread timer(enableBot, this);
+	timer.detach();
 }
 
 void Game::selectPlayer(int team, int player)
@@ -547,12 +560,21 @@ int Game::getMyPlayerId()
 
 void Game::movePlayer(int playerTeam, int playerId, float angle)
 {
+	if(!botEnabled)
+		return;
+
 	Player *player;
 
 	if(playerTeam == 0)
 		player = team1[playerId];
 	else
 		player = team2[playerId];
+
+	if(!player->getIsMovable())
+		return;
+
+	if(checkForObstacles(player, angle))
+		return;
 
 	player->setAngle(angle);
 	//if(playerId == 1 && playerTeam == 1) cout<<"here1";
@@ -566,9 +588,88 @@ void Game::movePlayer(int playerTeam, int playerId, float angle)
 
 	if(dist < HIT_THRESHOLD)
 	{
+		/*if(isBallInPossession())
+		{
+			Player *possessor;
+			if(possessorPlayerTeam() == 0)
+				possessor = team1[possessorPlayerId()];
+			else
+				possessor = team2[possessorPlayerId()];
+			possessor->immobilize();
+		}*/
 		setBallFree();
 		player->possess();
 	}
+
+	/*if(isBallInPossession())
+	{
+		if(dist < HIT_THRESHOLD/2)
+		{
+			Player *possessor;
+			if(possessorPlayerTeam() == 0)
+				possessor = team1[possessorPlayerId()];
+			else
+				possessor = team2[possessorPlayerId()];
+			if(possessor != player)
+			{
+				possessor->immobilize();
+				setBallFree();
+				player->possess();
+			}
+		}
+	}
+	else
+	{
+		if(dist < HIT_THRESHOLD)
+		{
+			setBallFree();
+			player->possess();
+		}
+	}*/
+
+}
+
+bool Game::checkForObstacles(Player *player, float angle)
+{
+	float oldX = player->getPosX();
+	float oldY = player->getPosY();
+	float newX = oldX + player->getMobility() * cos(angle * 3.1415 / 180);
+	float newY = oldY + player->getMobility() * sin(angle * 3.1415 / 180);
+
+	float oldDist, newDist, dx1, dx2, dy1, dy2;
+
+	for(int i = 0; i < PLAYERS_PER_TEAM; i++)
+	{
+		if(team1[i] == player)
+			continue;
+
+		dx1 = team1[i]->getPosX() - newX;
+		dy1 = team1[i]->getPosY() - newY;
+		dx2 = team1[i]->getPosX() - oldX;
+		dy2 = team1[i]->getPosY() - oldY;
+
+		newDist = sqrt(dx1*dx1 + dy1*dy1);
+		oldDist = sqrt(dx2*dx2 + dy2*dy2);
+
+		if(newDist < HIT_THRESHOLD && newDist < oldDist)
+			return true;
+
+		if(team2[i] == player)
+			continue;
+
+		dx1 = team2[i]->getPosX() - newX;
+		dy1 = team2[i]->getPosY() - newY;
+		dx2 = team2[i]->getPosX() - oldX;
+		dy2 = team2[i]->getPosY() - oldY;
+
+		newDist = sqrt(dx1*dx1 + dy1*dy1);
+		oldDist = sqrt(dx2*dx2 + dy2*dy2);
+
+		if(newDist < HIT_THRESHOLD && newDist < oldDist)
+			return true;
+	}
+
+	return false;
 }
 
 bool Game::isMyTeamInPossession()
@@ -763,8 +864,8 @@ bool Game::isOpponentNearby(Player *player, int teamId, int playerId)
 		minDist = min(minDist, dist);
 	}
 
-	if(minDist < 10.0)
-		return true;
+	//if(minDist < 10.0)
+		//return true;
 
 	if(minDist < 30.0)
 	{
@@ -781,7 +882,13 @@ bool Game::isTeamMateInABetterPositionToScore(Player *player, Player *teamMate, 
 {
 	if(!playerInDBox(teamMate, teamId, 1-playerId, goalPos))
 		return false;
-	else return true;
+	else
+	{
+		if(rand()%2)
+			return true;
+		else
+			return false;
+	}
 	Player *opponentGoalkeeper;
 	float angle;
 	if(teamId == 0)
@@ -944,11 +1051,11 @@ void Game::whenInPossessionStrategy(int teamId, int playerId)
 
 	if(playerInDBox(player, teamId, playerId, goalPos))
 	{
-		/*if(isTeamMateInABetterPositionToScore(player, teamMate, teamId, playerId, goalPos))
+		if(isTeamMateInABetterPositionToScore(player, teamMate, teamId, playerId, goalPos))
 		{
 			pass(teamId, playerId);
 		}
-		else*/
+		else
 		{
 			float add;
 			if(goalKeeperMoreTowardsFirstBar(1-teamId, opponentGoalkeeper))
@@ -1019,7 +1126,8 @@ void Game::whenInPossessionStrategy(int teamId, int playerId)
 			/*float pos_x = teamMate->getPosX() + 10*(teamMate->getMobility()) * cos((teamMate->getAngle()) * 3.1415 / 180);
 			float pos_y = teamMate->getPosY() + 10*(teamMate->getMobility()) * sin((teamMate->getAngle()) * 3.1415 / 180);
 			player->pass(teamId, playerId, teamMate, 1-playerId, make_pair(pos_x, pos_y), make_pair(player->getPosX(), player->getPosY()));*/
-			pass(teamId, playerId);
+			if(rand()%2)
+				pass(teamId, playerId);
 		}
 		else
 		{
@@ -1199,14 +1307,14 @@ void Game::whenNotInPossessionStrategy(int teamId, int playerId)
 
 	if(isPlayerMovingTowardsGoal(teamMate, teamId, playerId, opponentGoalPos))
 	{
-		if((teamId == 0 && dX < -10.0)||(teamId == 1 && dX > 10.0))
+		if((teamId == 0 && dX < -50.0)||(teamId == 1 && dX > 50.0))
 		{
 			return;
 		}
 	}
 	else
 	{
-		if((teamId == 0 && dX > 10.0)||(teamId == 1 && dX < -10.0))
+		if((teamId == 0 && dX > 50.0)||(teamId == 1 && dX < -50.0))
 		{
 			return;
 		}
@@ -2114,6 +2222,27 @@ effect_type Game::removeEffect(int teamNo, int playerId)
 
 void Game::draw()
 {
+	if(getWeather() == STORM)
+	{
+		static int i = 0;
+
+		if(i % 100 != 0 && i % 102 != 0)
+			glColor3f(0.5f, 0.5f, 0.5f);
+		else
+			glColor3f(1.0f, 1.0f, 1.0f);
+
+		i++;
+		if(i > 102) i = 0;
+	}
+	else if(getWeather() == DAY)
+	{
+		glColor3f(1.0f, 1.0f, 0.7f);
+	}
+	else if(getWeather() == NIGHT)
+	{
+		glColor3f(1.0f, 1.0f, 1.0f);
+	}
+
 	if(matchCompleted)
 	{
 		glColor3f(0.3f, 0.3f, 0.3f);
@@ -2145,6 +2274,8 @@ void Game::draw()
 		displayResult();
 	}
 
+	displayScore();
+
 	stateMutex.lock();
 	state->weather = weather;
 	state->timeSpent = computeTimeSpent();
@@ -2156,6 +2287,51 @@ void Game::draw()
 		state->Team2[i] = *(team2[i]);
 	}
 	stateMutex.unlock();
+}
+
+void printScore(string message,float x,float y)
+{
+	int i, len;
+
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+
+	glLoadIdentity();
+	glTranslatef(0.0f, 0.0f, -5.0f);
+	glRasterPos2f(x,y);
+
+	glDisable(GL_TEXTURE);
+	glDisable(GL_TEXTURE_2D);
+	for (i = 0, len = message.size(); i < len; i++)
+	{
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, (int)message[i]);
+	}
+	glEnable(GL_TEXTURE);
+	glEnable(GL_TEXTURE_2D);
+}
+
+void Game::displayScore()
+{
+	string message = "TEAM1 " + std::to_string(getTeam1Goals()) + "-" +
+		std::to_string(getTeam2Goals()) + " TEAM2 ";
+	float time_spent;
+	if(getType() == CREATOR)
+		time_spent = computeTimeSpent();
+	else
+		time_spent = getTimeSpent();
+	//endTime = clock();
+	//float time_spent = (float)(endTime - startTime) / CLOCKS_PER_SEC;
+	//time_spent = floorf(time_spent * 100) / 100 - 0.40;
+	//time_spent *= 100;
+	int minutes = ((int)time_spent)/60;
+	int seconds = ((int)time_spent)%60;
+	if(seconds < 10)
+		message += std::to_string(minutes) + ":0" + std::to_string(seconds);
+	else
+		message += std::to_string(minutes) + ":" + std::to_string(seconds);
+	printScore(message, -3.5f, 1.7f);
+
+	if(minutes >= 10)
+		initiateEndSequence();
 }
 
 void Game::displayGoalWord()
@@ -2267,4 +2443,14 @@ int Game::getLastGoalScoringTeam()
 weather_type Game::getWeather()
 {
 	return weather;
+}
+
+void Game::setBotEnabled(bool botEnabled)
+{
+	this->botEnabled = botEnabled;
+}
+
+bool Game::getBotEnabled()
+{
+	return botEnabled;
 }

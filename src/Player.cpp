@@ -7,6 +7,8 @@
 
 #include "../include/Player.h"
 #include <math.h>
+#include <chrono>
+#include <thread>
 
 float Player::max(float x, float y)
 {
@@ -53,6 +55,7 @@ Player::Player()
 
 Player::Player(int texture, float mobility, float pos_x, float pos_y, float angle, Soccer *soccer, Ground *ground, bool isBot, Ball *ball)
 {
+	this->isMovable = true;
 	this->texture = texture;
 	this->totalPostures = soccer->getTotalPlayerPostures(texture);
 	this->posture = 0;
@@ -356,4 +359,27 @@ void Player::operator=(Player& player)
 	this->pos_y = player.pos_y;
 	this->angle = player.angle;
 	this->possession = player.possession;
+}
+
+void immobilityTimer(Player *player)
+{
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+	player->setIsMovable(true);
+}
+
+void Player::immobilize()
+{
+	isMovable = false;
+	std::thread timer(immobilityTimer, this);
+	timer.detach();
+}
+
+void Player::setIsMovable(bool isMovable)
+{
+	this->isMovable = isMovable;
+}
+
+bool Player::getIsMovable()
+{
+	return isMovable;
 }

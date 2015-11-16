@@ -23,6 +23,7 @@ using namespace std;
 
 class Player
 {
+	bool isMovable;
 	bool possession;
 	int texture;
 	int totalPostures;
@@ -69,6 +70,9 @@ public:
 	void draw(weather_type weather);
 	void setIsBot(bool isBot);
 	bool getIsBot();
+	void immobilize();
+	void setIsMovable(bool isMovable);
+	bool getIsMovable();
 
 	void operator=(Player& player);
 };
