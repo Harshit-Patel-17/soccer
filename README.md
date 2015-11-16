@@ -11,6 +11,9 @@ By default game is created on port 3000. Therefore any joiner must connect to po
 **Controls**
 
 Arrow keys: Player movements
+
 's': Pass
+
 space bar: shoot (Long press for more power)
+
 esc: Exit game
