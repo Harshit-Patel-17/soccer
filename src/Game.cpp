@@ -488,12 +488,15 @@ void Game::reset(int teamInAttack)
 	blowWhistle();
 }
 
-void Game::selectPlayer()
+void Game::selectPlayer(int team, int player)
 {
-	std::cout << "Select team(0/1): ";
-	std::cin >> myPlayerTeam;
-	std::cout << "Select player(0/1): ";
-	std::cin >> myPlayerId;
+	//std::cout << "Select team(0/1): ";
+	//std::cin >> myPlayerTeam;
+	//std::cout << "Select player(0/1): ";
+	//std::cin >> myPlayerId;
+
+	myPlayerTeam = team;
+	myPlayerId = player;
 
 	if(myPlayerTeam == 0)
 		myPlayer = team1[myPlayerId];
@@ -1788,9 +1791,9 @@ void Game::initiateEndSequence()
 		team2Won = true;
 }
 
-void Game::join()
+bool Game::join()
 {
-	selectPlayer();
+	//selectPlayer();
 
 	Packet packet;
 	strcpy(packet.ip, this->ip);
@@ -1806,22 +1809,27 @@ void Game::join()
 	if(response[0] == '0')
 	{
 		std::cout << "Could not join the game..." << std::endl;
-		query();
-		return;
+		//query();
+		return false;
 	}
 
 	onlinePlayers->add(ip, port, 0, 0);
 
 	std::thread controlSenderThread(controlSender, this, serverIp, serverPort);
 	controlSenderThread.detach();
+
+	return true;
 }
 
-void Game::setServerAddr()
+void Game::setServerAddr(const char *ip, int port)
 {
-	cout << "Creator IP: ";
-	cin >> serverIp;
-	cout << "Creator Port: ";
-	cin >> serverPort;
+	//cout << "Creator IP: ";
+	//cin >> serverIp;
+	//cout << "Creator Port: ";
+	//cin >> serverPort;
+
+	strcpy(serverIp, ip);
+	serverPort = port;
 }
 
 void Game::query()

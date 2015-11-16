@@ -150,7 +150,7 @@ public:
 	virtual ~Game();
 
 	void reset(int teamInAttack);
-	void selectPlayer();
+	void selectPlayer(int team, int player);
 	void startServer();
 	game_type getType();
 	int getMyPlayerTeam();
@@ -168,8 +168,8 @@ public:
 	void updateShootPower(float amount, int playerTeam, int playerId);
 	void shoot(int playerTeam, int playerId);
 	void pass(int playerTeam, int playerId);
-	void join();
-	void setServerAddr();
+	bool join();
+	void setServerAddr(const char *ip, int port);
 	void query();
 	string makePlayerString(); //Indicates which players are bots and which are humans
 	void parseAndDisplayPlayerString(string playerString);

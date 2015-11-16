@@ -7,8 +7,11 @@ CPP_SRCS += \
 ../src/Ball.cpp \
 ../src/Game.cpp \
 ../src/Ground.cpp \
+../src/MultiPlayer.cpp \
 ../src/Player.cpp \
+../src/SceneManager.cpp \
 ../src/Soccer.cpp \
+../src/Welcome.cpp \
 ../src/main.cpp \
 ../src/state.cpp 
 
@@ -16,8 +19,11 @@ OBJS += \
 ./src/Ball.o \
 ./src/Game.o \
 ./src/Ground.o \
+./src/MultiPlayer.o \
 ./src/Player.o \
+./src/SceneManager.o \
 ./src/Soccer.o \
+./src/Welcome.o \
 ./src/main.o \
 ./src/state.o 
 
@@ -25,8 +31,11 @@ CPP_DEPS += \
 ./src/Ball.d \
 ./src/Game.d \
 ./src/Ground.d \
+./src/MultiPlayer.d \
 ./src/Player.d \
+./src/SceneManager.d \
 ./src/Soccer.d \
+./src/Welcome.d \
 ./src/main.d \
 ./src/state.d 
 

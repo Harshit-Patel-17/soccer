@@ -11,16 +11,18 @@
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include "../include/Game.h"
+#include "../include/SceneManager.h"
 
 using namespace std;
 
-#define SCREEN_WIDTH 1024*2
-#define SCREEN_HEIGHT 768*2
 #define JOYSTICK_THRESHOLD 200
 #define REFRESH_TIMER 50
 #define IO_TIMER 25
 
-Game *game;
+int screen_width = SCREEN_WIDTH;
+int screen_height = SCREEN_HEIGHT;
+
+/*Game *game;
 
 enum keys {RIGHT_KEY, LEFT_KEY, UP_KEY, DOWN_KEY, PASS_KEY, SHOOT_KEY, ESC_KEY};
 
@@ -294,19 +296,6 @@ void handleKeyUp(unsigned char key, int x, int y)
 		case 's':
 			keysPressed[PASS_KEY] = false;
 			break;
-
-		/*case 's':
-			if(isShootKeyPressed)
-			{
-				shootPressEnd = clock();
-				double cpu_time_used = ((double) (shootPressEnd - shootPressStart)) / CLOCKS_PER_SEC;
-				float initial_velocity = cpu_time_used + 5.0;
-				printf("Key up %c",key);
-				printf("%f ",initial_velocity);
-				//game->shoot(8.0);
-				isShootKeyPressed = false;
-			}
-			break;*/
 	}
 }
 
@@ -320,30 +309,17 @@ void handleKeyPress(unsigned char key, int x, int y)
 	{
         case 27:
         	keysPressed[ESC_KEY] = true;
-            //exit(0);
             break;
 
         case 32:
         	keysPressed[SHOOT_KEY] = true;
-        	/*control.type = SHOOT;
-        	if(game->getType() == CREATOR)
-        		game->shoot(game->getMyPlayerTeam(), game->getMyPlayerId());
-			else
-				game->insertControl(control);
-
-        	game->updateShootPower(SHOOT_RATE, game->getMyPlayerTeam(), game->getMyPlayerId());*/
         	break;
 
         case 's':
         	keysPressed[PASS_KEY] = true;
-        	/*control.type = PASS;
-        	if(game->getType() == CREATOR)
-        		game->pass(game->getMyPlayerTeam(), game->getMyPlayerId());
-        	else
-        		game->insertControl(control);*/
         	break;
 	}
-}
+}*/
 
 void initRendering()
 {
@@ -361,13 +337,11 @@ void initRendering()
 
 void handleResize(int w, int h)
 {
-	glViewport(0, 0, w, h);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(45.0, (double)w/(double)h, 1.0, 200.0);
+	screen_width = w;
+	screen_height = h;
 }
 
-void drawText(string message,float x,float y)
+/*void drawText(string message,float x,float y)
 {
 	int i, len;
 
@@ -385,9 +359,9 @@ void drawText(string message,float x,float y)
 	}
 	glEnable(GL_TEXTURE);
 	glEnable(GL_TEXTURE_2D);
-}
+}*/
 
-void showScoreAndTime()
+/*void showScoreAndTime()
 {
 	string message = "TEAM1 " + std::to_string(game->getTeam1Goals()) + "-" +
 			std::to_string(game->getTeam2Goals()) + " TEAM2 ";
@@ -410,17 +384,22 @@ void showScoreAndTime()
 
 	if(minutes >= 10)
 		game->initiateEndSequence();
-}
+}*/
 
 void drawScene()
 {
+	glViewport(0, 0, screen_width, screen_height);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(45.0, (double)screen_width/(double)screen_height, 1.0, 200.0);
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glOrtho(0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 0.0f, 0.0f);
+    //glOrtho(0.0f, screen, SCREEN_HEIGHT, 0.0f, 0.0f, 0.0f);
 
-    if(game->getWeather() == STORM)
+    /*if(game->getWeather() == STORM)
     {
 		static int i = 0;
 
@@ -443,7 +422,9 @@ void drawScene()
 
     game->draw();
 
-    showScoreAndTime();
+    showScoreAndTime();*/
+
+    sceneManager.drawScene();
 
     glutSwapBuffers();
 }
@@ -456,36 +437,35 @@ void update(int value)
 
 int main(int argc, char *argv[])
 {
-	for(int i = 0; i < 7; i++)
+	/*for(int i = 0; i < 7; i++)
 		keysPressed[i] = false;
 
 	int choice;
 	std::cout << "1. Create game" << std::endl;
 	std::cout << "2. Join game" << std::endl;
 	std::cout << "Enter choice(1/2): ";
-	std::cin >> choice;
+	std::cin >> choice;*/
 
     glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
 	glutInitWindowSize(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	glutCreateWindow("OpenGL");
+	//glutFullScreen();
 	initRendering();
 
-	for(int i=0;i<4;i++) keysPressed[i] = false;
-
 	glutDisplayFunc(drawScene);
-	glutIgnoreKeyRepeat(1);
+	/*glutIgnoreKeyRepeat(1);
 	glutKeyboardFunc(handleKeyPress);
 	glutKeyboardUpFunc(handleKeyUp);
 	glutSpecialFunc(handleSpecialInput);
 	glutSpecialUpFunc(handleSpecialUpInput);
-	glutJoystickFunc(handleJoystickInput, IO_TIMER);
+	glutJoystickFunc(handleJoystickInput, IO_TIMER);*/
 	glutReshapeFunc(handleResize);
-	glutTimerFunc(IO_TIMER, handleKeyboardInput, 0);
+	//glutTimerFunc(IO_TIMER, handleKeyboardInput, 0);
     glutTimerFunc(REFRESH_TIMER, update, 0);
 
-    weather_type weather;
+    /*weather_type weather;
     switch(choice)
     {
     case 1:
@@ -523,7 +503,7 @@ int main(int argc, char *argv[])
     default:
     	std::cout << "Incorrect choice..." << std::endl;
     	break;
-    }
+    }*/
 
     /*if(argc == 2)
     {
@@ -549,6 +529,8 @@ int main(int argc, char *argv[])
     	std::cout << "Incorrect number of arguments." << std::endl;
     	return -1;
     }*/
+
+    sceneManager.loadScene(WELCOME);
 
 	glutMainLoop();
 
